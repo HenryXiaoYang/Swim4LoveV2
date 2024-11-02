@@ -18,9 +18,19 @@ This is a project for the Swim4Love event. It is a web application that allows u
  ```
 
 2. Install Python dependencies:
- ```sh
- pip install -r requirements.txt
- ```
+```sh
+pip install -r requirements.txt
+```
+
+3. Collect static files:
+```sh
+python3 manage.py collectstatic
+```
+4. Migrate the database:
+```sh
+python3 manage.py makemigrations
+python3 manage.py migrate
+```
 
 ## Usage
 
