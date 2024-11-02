@@ -1,7 +1,6 @@
 html {
-
     background-size: cover;
-    background: #0056b3 url("/static/image/ykps_swim_pool.webp") no-repeat fixed center center;
+    background: #0056b3 url("../image/ykps_swim_pool.webp") no-repeat fixed center center;
 }
 
 html, body {
@@ -37,6 +36,17 @@ html, body {
 }
 
 /* index.html */
+
+.logo {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+}
+
+.logo img {
+    height: 75px;
+    width: auto;
+}
 
 .user-logged-in {
     position: absolute;

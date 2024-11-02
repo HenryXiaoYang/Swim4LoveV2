@@ -7,8 +7,13 @@
         <div class="title">
             <h1>Swim4Love</h1>
         </div>
+        
+        <!-- Add logo -->
+        <div class="logo">
+            <img src="{% static 'image/s4l_logo.png' %}" alt="Logo">
+        </div>
 
-        <!-- Add user info at the top right corner -->
+        <!-- Add user info -->
         <div class="user-logged-in" style="position: absolute; top: 10px; right: 10px;">
             {% if user.is_authenticated %}
                 Welcome <strong>{{ user.username }} </strong>!
