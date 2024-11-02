@@ -1,0 +1,70 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <div class="add-swimmer-container">
+        <a href="{% url 'index' %}" class="return-button"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1>Add Volunteer</h1>
+        <form method="post" action="{% url 'add_volunteer' %}">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.name.label_tag }} {{ form.name }}
+                    <!-- Display field errors -->
+                    {% if form.name.errors %}
+                        <div class="error-box">
+                            {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.student_id.label_tag }}
+                    <div class="inline-container">
+                        <strong>s</strong> {{ form.student_id }}
+                    </div>
+                    <!-- Display field errors -->
+                    {% if form.student_id.errors %}
+                        <div class="error-box">
+                            {{ form.student_id.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.password.label_tag }}
+                    <div class="inline-container">
+                        {{ form.password }}
+                    </div>
+                    <!-- Display field errors -->
+                    {% if form.password.errors %}
+                        <div class="error-box">
+                            {{ form.password.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                        {{ form.re_password.label_tag }}
+                        <div class="inline-container">
+                            {{ form.re_password }}
+                        </div>
+                        <!-- Display field errors -->
+                        {% if form.re_password.errors %}
+                            <div class="error-box">
+                                {{ form.re_password.errors }}
+                            </div>
+                        {% endif %}
+                </div>
+            </div>
+
+            <!-- Display non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="error-box">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="submit-button">Add Volunteer</button>
+        </form>
+    </div>
+{% endblock %}

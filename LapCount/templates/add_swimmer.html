@@ -1,0 +1,83 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <div class="add-swimmer-container">
+        <a href="{% url 'index' %}" class="return-button"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1>Add Swimmer</h1>
+        <form method="post" action="{% url 'add_swimmer' %}">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.name.label_tag }} {{ form.name }}
+                    <!-- Display field errors -->
+                    {% if form.name.errors %}
+                        <div class="error-box">
+                            {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.student_id.label_tag }}
+                    <div class="inline-container">
+                        <strong>s</strong> {{ form.student_id }}
+                    </div>
+                    {% if form.student_id.errors %}
+                        <div class="error-box">
+                            {{ form.student_id.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.house.label_tag }} {{ form.house }}
+                    <!-- Display field errors -->
+                    {% if form.house.errors %}
+                        <div class="error-box">
+                            {{ form.house.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.lap_count.label_tag }} {{ form.lap_count }}
+                    <!-- Display field errors -->
+                    {% if form.lap_count.errors %}
+                        <div class="error-box">
+                            {{ form.lap_count.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.minutes.label_tag }} {{ form.minutes }}
+                    <!-- Display field errors -->
+                    {% if form.minutes.errors %}
+                        <div class="error-box">
+                            {{ form.minutes.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.seconds.label_tag }} {{ form.seconds }}
+                    <!-- Display field errors -->
+                    {% if form.seconds.errors %}
+                        <div class="error-box">
+                            {{ form.seconds.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Display non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="error-box">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="submit-button">Add Swimmer</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block title %}<title>Swim4Love</title>{% endblock %}
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {% load static %}
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.16.9/dist/xlsx.full.min.js"></script>
+    <script src="{% static 'js/sort_swimmer.js' %}"></script>
+    <script src="{% static 'js/create_excel.js' %}"></script>
+    <script src="{% static 'js/confirm_delete.js' %}"></script>
+  </head>
+
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
