@@ -7,7 +7,7 @@
         <div class="title">
             <h1>Swim4Love</h1>
         </div>
-        
+
         <!-- Add logo -->
         <div class="logo">
             <img src="{% static 'image/s4l_logo.png' %}" alt="Logo">
@@ -162,7 +162,8 @@
                         <form action="{% url 'delete_volunteer' volunteer.student_id %}" method="post"
                               onsubmit="confirmDelete(event)">
                             {% csrf_token %}
-                            <button type="submit" class="delete-volunteer-button"><i class="fa-solid fa-trash"></i></button>
+                            <button type="submit" class="delete-volunteer-button"><i class="fa-solid fa-trash"></i>
+                            </button>
                         </form>
                     {% endif %}
                 </div>

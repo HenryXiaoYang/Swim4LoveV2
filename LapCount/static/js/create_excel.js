@@ -5,10 +5,10 @@ function downloadSwimmersExcel() {
     var data = [];
 
     // Loop through rows and cells to extract data
-    rows.forEach(function(row) {
+    rows.forEach(function (row) {
         var rowData = [];
         var cells = row.querySelectorAll('th, td');
-        cells.forEach(function(cell) {
+        cells.forEach(function (cell) {
             rowData.push(cell.innerText);
         });
         data.push(rowData);

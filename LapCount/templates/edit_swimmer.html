@@ -18,7 +18,8 @@
                 </div>
                 <div class="form-group">
                     <label for="id_student_id">Student ID:</label>
-                    <strong>s</strong><input type="text" name="student_id" id="id_student_id" value="{{ form.student_id.value }}" class="form-field" readonly>
+                    <strong>s</strong><input type="text" name="student_id" id="id_student_id"
+                                             value="{{ form.student_id.value }}" class="form-field" readonly>
                     {% if form.student_id.errors %}
                         <div class="error-box">
                             {{ form.student_id.errors }}
@@ -29,7 +30,8 @@
                     <label for="id_house">House:</label>
                     <select name="house" id="id_house" class="form-field">
                         {% for choice in form.house.field.choices %}
-                            <option value="{{ choice.0 }}" {% if choice.0 == form.house.value %}selected{% endif %}>{{ choice.1 }}</option>
+                            <option value="{{ choice.0 }}"
+                                    {% if choice.0 == form.house.value %}selected{% endif %}>{{ choice.1 }}</option>
                         {% endfor %}
                     </select>
                     {% if form.house.errors %}
@@ -43,19 +45,21 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="id_lap_count">Lap Count:</label>
-                    <input type="number" name="lap_count" id="id_lap_count" value="{{ form.lap_count.value }}" class="form-field">
+                    <input type="number" name="lap_count" id="id_lap_count" value="{{ form.lap_count.value }}"
+                           class="form-field">
                 </div>
                 {% if form.lap_count.errors %}
-                        <div class="error-box">
-                            {{ form.lap_count.errors }}
-                        </div>
+                    <div class="error-box">
+                        {{ form.lap_count.errors }}
+                    </div>
                 {% endif %}
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="id_minutes">Minutes:</label>
-                    <input type="number" name="minutes" id="id_minutes" value="{{ form.minutes.value }}" class="form-field">
+                    <input type="number" name="minutes" id="id_minutes" value="{{ form.minutes.value }}"
+                           class="form-field">
                     {% if form.minutes.errors %}
                         <div class="error-box">
                             {{ form.minutes.errors }}
@@ -64,7 +68,8 @@
                 </div>
                 <div class="form-group">
                     <label for="id_seconds">Seconds:</label>
-                    <input type="number" name="seconds" id="id_seconds" value="{{ form.seconds.value }}" class="form-field">
+                    <input type="number" name="seconds" id="id_seconds" value="{{ form.seconds.value }}"
+                           class="form-field">
                     {% if form.seconds.errors %}
                         <div class="error-box">
                             {{ form.seconds.errors }}

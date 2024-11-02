@@ -44,16 +44,16 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                        {{ form.re_password.label_tag }}
-                        <div class="inline-container">
-                            {{ form.re_password }}
+                    {{ form.re_password.label_tag }}
+                    <div class="inline-container">
+                        {{ form.re_password }}
+                    </div>
+                    <!-- Display field errors -->
+                    {% if form.re_password.errors %}
+                        <div class="error-box">
+                            {{ form.re_password.errors }}
                         </div>
-                        <!-- Display field errors -->
-                        {% if form.re_password.errors %}
-                            <div class="error-box">
-                                {{ form.re_password.errors }}
-                            </div>
-                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
 

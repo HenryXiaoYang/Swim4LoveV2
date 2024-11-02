@@ -1,8 +1,7 @@
-import openpyxl
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
@@ -149,12 +148,12 @@ def add_volunteer(request):
 
     return render(request, "add_volunteer.html", context={"form": form})
 
+
 @permission_required("LapCount.add_volunteer")
 def delete_volunteer(request, pk):
     print(1)
     pk = escape(pk)
     if request.method == "POST":
-
         username = Volunteer.objects.filter(student_id=pk).values('name').first()['name']
 
         User.objects.filter(username=username).delete()

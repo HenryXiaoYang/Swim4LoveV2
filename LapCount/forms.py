@@ -1,13 +1,16 @@
+import re
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-import re
+
 from LapCount.models import Volunteer
 
 
 def ValidateStudentID(value):
     if len(str(value)) != 5 and not str(value).isdigit():
         raise ValidationError("Please enter a valid student ID")
+
 
 def ValidateUsername(value):
     if not re.match(r'^[\w.@+-]+$', value):
@@ -66,7 +69,7 @@ class AddVolunteerForm(forms.Form):
             self.add_error(None, "Password does not match")
             return False
         elif re_password == "":
-            self.add_error(None,"Please enter a password")
+            self.add_error(None, "Please enter a password")
             return False
         elif len(re_password) < 5:
             self.add_error(None, "Password must be at least 5 characters")

@@ -36,12 +36,18 @@ function sortTable(column, reverse = false) {
 
 function columnIndex(column) {
     switch (column) {
-        case 'name': return 0;
-        case 'student_id': return 1;
-        case 'house': return 2;
-        case 'lap_count': return 3;
-        case 'time': return 4;
-        default: return -1;
+        case 'name':
+            return 0;
+        case 'student_id':
+            return 1;
+        case 'house':
+            return 2;
+        case 'lap_count':
+            return 3;
+        case 'time':
+            return 4;
+        default:
+            return -1;
     }
 }
 
