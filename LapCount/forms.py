@@ -27,9 +27,9 @@ class AddSwimmerForm(forms.Form):
         choices=[("Spring", "Spring"), ("Summer", "Summer"), ("Autumn", "Autumn"), ("Winter", "Winter")],
         widget=forms.Select(attrs={"class": "form-field"}))
     lap_count = forms.IntegerField(initial=0, widget=forms.NumberInput(attrs={"class": "form-field"}),
-                                   validators=[MinValueValidator(1), MaxValueValidator(100)])
+                                   validators=[MinValueValidator(1), MaxValueValidator(150)])
     minutes = forms.IntegerField(initial=0, widget=forms.NumberInput(attrs={"class": "form-field"}),
-                                 validators=[MinValueValidator(0), MaxValueValidator(60)])
+                                 validators=[MinValueValidator(0), MaxValueValidator(180)])
     seconds = forms.IntegerField(initial=0, widget=forms.NumberInput(attrs={"class": "form-field"}),
                                  validators=[MinValueValidator(0), MaxValueValidator(59)])
 
