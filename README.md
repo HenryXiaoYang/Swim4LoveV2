@@ -64,10 +64,14 @@ gunicorn Swim4LoveV2.wsgi -c gunicorn.conf.py
 
 ## Deploy with Docker
 
-1. Pull the image from Docker Hub:
+1. Pull or build the image from Docker Hub:
 
 ```sh
 docker pull henryxiaoyang/swim4love
+
+# or
+
+sudo docker build -t henryxiaoyang/swim4lovev2 .
 ```
 
 2. Run the image:
