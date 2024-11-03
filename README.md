@@ -32,20 +32,23 @@ DJANGO_SECRET_KEY=your_secret_key
 
 Make sure to keep your keys safe!
 
-4. Collect static files:
+5. Edit the Swim4LoveV2/settings.py file if you need to change some Django settings.
+
+
+6. Collect static files:
 
 ```sh
 python3 manage.py collectstatic
 ```
 
-5. Migrate the database:
+7. Migrate the database:
 
 ```sh
 python3 manage.py makemigrations
 python3 manage.py migrate
 ```
 
-6. Create a superuser
+8. Create a superuser
 
 ```shell
 python3 manage.py createsuperuser
@@ -64,13 +67,9 @@ gunicorn Swim4LoveV2.wsgi -c gunicorn.conf.py
 
 ## Deploy with Docker
 
-1. Pull or build the image from Docker Hub:
+1. Build the image:
 
 ```sh
-docker pull henryxiaoyang/swim4love
-
-# or
-
 sudo docker build -t henryxiaoyang/swim4lovev2 .
 ```
 
