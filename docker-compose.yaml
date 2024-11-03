@@ -2,7 +2,7 @@ version: "3"
 
 services:
   swim4lovev2:
-    image: henryxiaoyang/swim4lovev2:latest
+    image: henryxiaoyang/swim4lovev2
     container_name: swim4lovev2
     restart: always
     volumes:
