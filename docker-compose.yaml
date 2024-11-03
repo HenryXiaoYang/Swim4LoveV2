@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  swim4lovev2:
+    image: henryxiaoyang/swim4lovev2:latest
+    container_name: swim4lovev2
+    restart: always
+    volumes:
+        - swim4lovev2:/app
+    environment:
+      DJANGO_SECRET_KEY: Your-Secret-Key
+    ports:
+      - "8000:8000"
+
+volumes:
+    swim4lovev2:
