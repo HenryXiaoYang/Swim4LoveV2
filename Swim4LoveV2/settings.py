@@ -30,6 +30,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = []
 
 # Application definition
 
