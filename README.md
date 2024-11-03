@@ -76,7 +76,7 @@ sudo docker build -t henryxiaoyang/swim4lovev2 .
 2. Run the image:
 
 ```sh
-docker run -d \
+sudo docker run -d \
   --name swim4lovev2 \
   --restart always \
   -v swim4lovev2:/app \
