@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block content %}
-
     <div class="container">
         <div class="title">
             <h1>Swim4Love</h1>
@@ -57,12 +56,17 @@
 
 
         <h2>Swimmers</h2>
-        {% if have_perm %}
-            <button class="button" onclick="window.location.href='{% url 'add_swimmer' %}'"><i
-                    class="fa-solid fa-plus"></i></button>
-        {% endif %}
 
-
+        <div class="tool-container">
+            <div class="leaderboard-container">
+                <label for="leaderboard-switch">Enable Leaderboard</label>
+                <input type="checkbox" id="leaderboard-switch" onchange="toggleLeaderboard()">
+            </div>
+            {% if have_perm %}
+                <button class="button" onclick="window.location.href='{% url 'add_swimmer' %}'"><i
+                        class="fa-solid fa-plus"></i></button>
+            {% endif %}
+        </div>
 
 
         <table class="styled-table" id="swimmersTable">
@@ -72,7 +76,7 @@
                     <div class="table-header">
                         <span>Name</span>
                         <div class="button-container">
-                            <button onclick="sortTable('name')" class="asc-sort-button"></button>
+                            <button onclick="sortTable('name', false)" class="asc-sort-button"></button>
                             <button onclick="sortTable('name', true)" class="desc-sort-button"></button>
                         </div>
                     </div>

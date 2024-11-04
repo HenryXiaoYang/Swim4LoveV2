@@ -4,6 +4,7 @@ from LapCount import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("index/", views.index, name="index"),
     path("add_swimmer/", views.add_swimmer, name="add_swimmer"),
     path("add_volunteer/", views.add_volunteer, name="add_volunteer"),
     path("delete_swimmer/<str:pk>/", views.delete_swimmer, name="delete_swimmer"),

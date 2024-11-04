@@ -11,10 +11,12 @@ from .models import Swimmer, Volunteer
 
 
 def index(request):
+    leaderboard = request.GET.get('leaderboard', 'false') == 'true'
+
     num_swimmers = Swimmer.objects.all().count()
     num_volunteers = Volunteer.objects.all().count()
 
-    swimmers = Swimmer.objects.all()
+    swimmers = Swimmer.objects.all().order_by('-lap_count') if leaderboard else Swimmer.objects.all()
     volunteers = Volunteer.objects.all()
 
     spring_laps = sum([swimmer.lap_count for swimmer in swimmers if swimmer.house == "Spring"])
@@ -31,7 +33,7 @@ def index(request):
         context={"num_swimmers": num_swimmers, "total_laps": total_laps, "spring_laps": spring_laps,
                  "summer_laps": summer_laps, "autumn_laps": autumn_laps, "winter_laps": winter_laps,
                  "num_volunteers": num_volunteers,
-                 "swimmers": swimmers, "volunteers": volunteers, "have_perm": have_perm}, )
+                 "swimmers": swimmers, "volunteers": volunteers, "have_perm": have_perm, "leaderboard": leaderboard}, )
 
 
 # need to be volunteer
