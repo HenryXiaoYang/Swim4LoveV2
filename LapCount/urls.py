@@ -3,7 +3,7 @@ from django.urls import path
 from LapCount import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.index, name="home"),
     path("index/", views.index, name="index"),
     path("add_swimmer/", views.add_swimmer, name="add_swimmer"),
     path("add_volunteer/", views.add_volunteer, name="add_volunteer"),

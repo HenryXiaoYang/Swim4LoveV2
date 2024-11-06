@@ -61,7 +61,7 @@ def add_swimmer(request):
             seconds=form.cleaned_data["seconds"],
         )
         # return to the index page
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('home'))
 
     else:
         form = AddSwimmerForm()
@@ -74,7 +74,7 @@ def delete_swimmer(request, pk):
     pk = escape(pk)
     if request.method == "POST":
         Swimmer.objects.filter(student_id=pk).delete()
-    return HttpResponseRedirect(reverse('index'))
+    return HttpResponseRedirect(reverse('home'))
 
 
 @permission_required("LapCount.add_volunteer")
@@ -101,7 +101,7 @@ def edit_swimmer(request, pk):
         swimmer.seconds = form.cleaned_data["seconds"]
         swimmer.save()
 
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('home'))
 
 
     else:
@@ -143,7 +143,7 @@ def add_volunteer(request):
         add_volunteer_permission = Permission.objects.get(codename="add_volunteer")
         user.user_permissions.add(add_swimmer_permission, add_volunteer_permission)
 
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('home'))
 
     else:
         form = AddVolunteerForm()
@@ -162,4 +162,4 @@ def delete_volunteer(request, pk):
         Volunteer.objects.filter(student_id=pk).delete()
         print(2)
 
-    return HttpResponseRedirect(reverse('index'))
+    return HttpResponseRedirect(reverse('home'))
