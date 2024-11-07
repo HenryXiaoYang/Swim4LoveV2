@@ -25,6 +25,8 @@ def index(request):
     winter_laps = sum([swimmer.lap_count for swimmer in swimmers if swimmer.house == "Winter"])
     total_laps = spring_laps + summer_laps + autumn_laps + winter_laps
 
+    amount_raised = total_laps * 5  # Each lap raise 5 rmb
+
     have_perm = request.user.has_perm("LapCount.add_swimmer") and request.user.has_perm("LapCount.add_volunteer")
 
     return render(
@@ -32,8 +34,8 @@ def index(request):
         "index.html",
         context={"num_swimmers": num_swimmers, "total_laps": total_laps, "spring_laps": spring_laps,
                  "summer_laps": summer_laps, "autumn_laps": autumn_laps, "winter_laps": winter_laps,
-                 "num_volunteers": num_volunteers,
-                 "swimmers": swimmers, "volunteers": volunteers, "have_perm": have_perm, "leaderboard": leaderboard}, )
+                 "amount_raised": amount_raised, "num_volunteers": num_volunteers, "swimmers": swimmers,
+                 "volunteers": volunteers, "have_perm": have_perm, "leaderboard": leaderboard}, )
 
 
 # need to be volunteer
