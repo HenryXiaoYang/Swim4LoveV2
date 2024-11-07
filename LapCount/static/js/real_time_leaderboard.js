@@ -42,14 +42,16 @@ function refreshTable() {
                 console.error('Failed to find the table body in the fetched HTML.');
             }
 
-            const newCountsContainer = doc.querySelector('.counts-container');
-            if (newCountsContainer) {
-                const currentCountsContainer = document.querySelector('.counts-container');
-                currentCountsContainer.innerHTML = newCountsContainer.innerHTML;
+            const newStatContainer = doc.querySelector('.stats-container');
+            if (newStatContainer) {
+                const currentStatContainer = document.querySelector('.stats-container');
+                currentStatContainer.innerHTML = newStatContainer.innerHTML;
             }
             else {
-                console.error('Failed to find the counts-container in the fetched HTML.');
+                console.error('Failed to find the .stats-container in the fetched HTML.');
             }
+
+
         })
-        .catch(error => console.error('Error fetching the table data:', error));
+        .catch(error => console.error('Error fetching the data:', error));
 }
