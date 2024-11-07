@@ -37,8 +37,18 @@ function refreshTable() {
                         nameCell.innerHTML = `${winnerSign} ${nameCell.innerHTML.trim()}`;
                     }
                 });
-            } else {
+            }
+            else {
                 console.error('Failed to find the table body in the fetched HTML.');
+            }
+
+            const newCountsContainer = doc.querySelector('.counts-container');
+            if (newCountsContainer) {
+                const currentCountsContainer = document.querySelector('.counts-container');
+                currentCountsContainer.innerHTML = newCountsContainer.innerHTML;
+            }
+            else {
+                console.error('Failed to find the counts-container in the fetched HTML.');
             }
         })
         .catch(error => console.error('Error fetching the table data:', error));
