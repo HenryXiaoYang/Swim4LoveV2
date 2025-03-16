@@ -1,28 +1,16 @@
-"""
-URL configuration for Swim4LoveV2 project.
+from django.urls import path
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.conf import settings
-from django.conf.urls.static import static
-from django.contrib import admin
-from django.urls import include, path
-from django.views.generic.base import RedirectView
+from Swim4LoveV2 import views
 
 urlpatterns = [
-                  path('admin/', admin.site.urls),
-                  path('', include("LapCount.urls")),
-                  path('accounts/', include("django.contrib.auth.urls")),
-                  path('login/', RedirectView.as_view(url='/accounts/login/', permanent=True)),
-              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path("", views.index, name="home"),
+    path("index/", views.index, name="index"),
+    path("add_swimmer/", views.add_swimmer, name="add_swimmer"),
+    path("add_volunteer/", views.add_volunteer, name="add_volunteer"),
+    path("delete_swimmer/<uuid:pk>/", views.delete_swimmer, name="delete_swimmer"),
+    path("edit_swimmer/<uuid:pk>/", views.edit_swimmer, name="edit_swimmer"),
+    path("delete_volunteer/<str:pk>/", views.delete_volunteer, name="delete_volunteer"),
+    path("logout/", views.logout_view, name="logout"),
+    path("increment_laps/<uuid:pk>/", views.increment_laps, name="increment_laps"),
+    path("decrement_laps/<uuid:pk>/", views.decrement_laps, name="decrement_laps"),
+]

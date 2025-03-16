@@ -27,7 +27,7 @@ if not os.environ.get('DJANGO_SECRET_KEY', None):
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = []
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "LapCount.apps.LapcountConfig",
+    "Swim4LoveV2.apps.Swim4LoveV2Config",
     "fontawesomefree",
 ]
 
@@ -55,12 +55,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Swim4LoveV2.urls'
+ROOT_URLCONF = 'DjangoConfigs.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['./LapCount/templates', ]
+        'DIRS': ['./Swim4LoveV2/templates', ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Swim4LoveV2.wsgi.application'
+WSGI_APPLICATION = 'DjangoConfigs.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

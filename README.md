@@ -59,7 +59,7 @@ python3 manage.py createsuperuser
 1. Run the server:
 
 ```sh
-gunicorn Swim4LoveV2.wsgi -c gunicorn.conf.py
+gunicorn DjangoConfigs.wsgi -c gunicorn.conf.py
 ```
 
 2. Open your browser and go to `http://127.0.0.1:8000/` to view the website.

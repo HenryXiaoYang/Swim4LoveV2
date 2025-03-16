@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LapcountConfig(AppConfig):
+class Swim4LoveV2Config(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'LapCount'
+    name = 'Swim4LoveV2'

@@ -1,0 +1,260 @@
+{% extends "base_generic.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="container">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <!-- 用户登录信息 -->
+            {% if user.is_authenticated %}
+                <div class="user-info-panel">
+                    <div class="panel-header">
+                         <div class="user-avatar">
+                            <img src="{% static 'image/s4l_logo.png' %}" alt="Swim4Love Logo">
+                        </div>
+                        <h2 class="app-title">Swim4Love</h2>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-details">
+                            <span class="welcome-text">Welcome</span>
+                            <span class="username">{{ user.username }}</span>
+                            <form action="{% url 'logout' %}" method="post" class="logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="logout-button">
+                                    <i class="fa-solid fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="login-panel">
+                    <div class="panel-header">
+                        <div class="user-avatar">
+                           <img src="{% static 'image/s4l_logo.png' %}" alt="Swim4Love Logo">
+                       </div>
+                       <h2 class="app-title">Swim4Love</h2>
+                   </div>
+                    <a href="{% url 'login' %}" class="login-button-large">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Login</span>
+                    </a>
+                    <p class="login-hint">Log in to manage swimmer and volunteer data</p>
+                </div>
+            {% endif %}
+
+            <!-- 上部数据卡片 -->
+            <div class="stats-grid">
+                <div class="count-box">
+                    <strong>Swimmers</strong>
+                    <div>{{ num_swimmers }}</div>
+                </div>
+                <div class="count-box">
+                    <strong>Volunteers</strong>
+                    <div>{{ num_volunteers }}</div>
+                </div>
+                <div class="count-box">
+                    <strong>Total Laps</strong>
+                    <div>{{ total_laps }}</div>
+                </div>
+                <div class="count-box">
+                    <strong>Raised</strong>
+                    <div>{{ amount_raised }}¥</div>
+                </div>
+            </div>
+
+            <!-- 学院卡片 -->
+            <div class="houses-container">
+                {% if leaderboard %}
+                    {% for house in house_data %}
+                        <div class="house-box house-{{ house.css_class }} rank-{{ forloop.counter }}">
+                            <strong>
+                                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}4️⃣{% endif %}
+                                {{ house.name }}
+                            </strong>
+                            <div>{{ house.laps }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="house-box house-spring">
+                        <strong>Spring House</strong>
+                        <div>{{ spring_laps }}</div>
+                    </div>
+                    <div class="house-box house-summer">
+                        <strong>Summer House</strong>
+                        <div>{{ summer_laps }}</div>
+                    </div>
+                    <div class="house-box house-autumn">
+                        <strong>Autumn House</strong>
+                        <div>{{ autumn_laps }}</div>
+                    </div>
+                    <div class="house-box house-winter">
+                        <strong>Winter House</strong>
+                        <div>{{ winter_laps }}</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 排行榜开关 -->
+            <div class="leaderboard-container">
+                <label for="leaderboard-switch">Enable Leaderboard</label>
+                <input type="checkbox" id="leaderboard-switch" {% if leaderboard %}checked{% endif %} onchange="toggleLeaderboard()">
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <!-- 游泳者部分 -->
+            <div class="swimmers-section">
+                <h2>Swimmers</h2>
+                {% if have_perm %}
+                    <button class="button" onclick="location.href='{% url 'add_swimmer' %}'; return false;">
+                        <i class="fa-solid fa-plus"></i> Add Swimmer
+                    </button>
+                {% endif %}
+
+                <table class="styled-table {% if have_perm %}has-operations{% endif %}" id="swimmersTable">
+                    <thead>
+                    <tr>
+                        <th>
+                            <div class="table-header">
+                                <span>Name</span>
+                                <div class="button-container">
+                                    <button onclick="sortTable('name', false)" class="asc-sort-button"></button>
+                                    <button onclick="sortTable('name', true)" class="desc-sort-button"></button>
+                                </div>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header">
+                                <span>Student ID</span>
+                                <div class="button-container">
+                                    <button onclick="sortTable('student_id')" class="asc-sort-button"></button>
+                                    <button onclick="sortTable('student_id', true)" class="desc-sort-button"></button>
+                                </div>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header">
+                                <span>House</span>
+                                <div class="button-container">
+                                    <button onclick="sortTable('house')" class="asc-sort-button"></button>
+                                    <button onclick="sortTable('house', true)" class="desc-sort-button"></button>
+                                </div>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="table-header">
+                                <span>Laps</span>
+                                <div class="button-container">
+                                    <button onclick="sortTable('lap_count')" class="asc-sort-button"></button>
+                                    <button onclick="sortTable('lap_count', true)" class="desc-sort-button"></button>
+                                </div>
+                            </div>
+                        </th>
+                        {% if have_perm %}
+                        <th>Manage</th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for swimmer in swimmers %}
+                        <tr>
+                            <td>
+                                {% if leaderboard %}
+                                    {% if forloop.counter == 1 %}
+                                        🥇
+                                    {% elif forloop.counter == 2 %}
+                                        🥈
+                                    {% elif forloop.counter == 3 %}
+                                        🥉
+                                    {% endif %}
+                                {% endif %}
+                                {{ swimmer.name }}
+                            </td>
+                            <td>{{ swimmer.student_id|default:"/"}}</td>
+                            <td class="house-{{ swimmer.house|lower }}">{{ swimmer.house }}</td>
+                            <td>
+                                <div class="lap-controls">
+                                    {% if have_perm %}
+                                    <form action="{% url 'decrement_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="decrement" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button" class="lap-button minus-button" {% if swimmer.lap_count <= 0 %}disabled{% endif %}>
+                                            <i class="fa-solid fa-minus"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <span class="lap-count" id="lap-count-{{ swimmer.id }}">{{ swimmer.lap_count }}</span>
+                                    {% if have_perm %}
+                                    <form action="{% url 'increment_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="increment" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button" class="lap-button plus-button">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if have_perm %}
+                                <div class="action-buttons">
+                                    <form action="{% url 'edit_swimmer' swimmer.id %}" method="get">
+                                        <button type="submit" class="edit-button"><i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{% url 'delete_swimmer' swimmer.id %}" method="post"
+                                          onsubmit="confirmDelete(event)">
+                                        {% csrf_token %}
+                                        <button type="submit" class="delete-button"><i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% if have_perm %}
+                    <button class="button" onclick="downloadSwimmersExcel()">
+                        <i class="fa-solid fa-download"></i> Download Excel
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- 志愿者部分 -->
+            <div class="volunteers-section">
+                <h2>Volunteers</h2>
+                <div class="volunteer-header">
+                    {% if have_perm %}
+                        <button class="button" onclick="location.href='{% url 'add_volunteer' %}'; return false;">
+                            <i class="fa-solid fa-plus"></i> Add Volunteer
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="volunteer-grid">
+                    {% for volunteer in volunteers %}
+                        <div class="volunteer-box">
+                            <span class="volunteer-name">{{ volunteer.name }}</span>
+                            {% if have_perm %}
+                                <form action="{% url 'delete_volunteer' volunteer.student_id %}" method="post"
+                                      onsubmit="confirmDelete(event)">
+                                    {% csrf_token %}
+                                    <button type="submit" class="delete-volunteer-button"><i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 注意：此处事件绑定已移至real_time_leaderboard.js
+            // 为避免重复绑定，保留此注释以便后续维护
+        });
+    </script>
+{% endblock %}

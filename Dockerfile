@@ -27,4 +27,4 @@ RUN python3 manage.py migrate
 EXPOSE 8000
 
 # Run the application
-CMD ["gunicorn", "Swim4LoveV2.wsgi", "-c", "gunicorn.conf.py"]
+CMD ["gunicorn", "DjangoConfigs.wsgi", "-c", "gunicorn.conf.py"]
