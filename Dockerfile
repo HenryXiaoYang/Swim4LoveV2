@@ -20,7 +20,7 @@ COPY . /app/
 RUN python3 manage.py collectstatic
 
 # Apply database migrations
-RUN python3 manage.py makemigrations
+RUN python3 manage.py makemigrations Swim4LoveV2
 RUN python3 manage.py migrate
 
 # Open port 8000
