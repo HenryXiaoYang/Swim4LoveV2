@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-    <div class="container">
+    <div class="container" id="mainContainer">
         <!-- 左侧面板 -->
         <div class="left-panel">
             <!-- 用户登录信息 -->
@@ -108,7 +108,7 @@
             <div class="swimmers-section">
                 <h2>Swimmers</h2>
                 {% if have_perm %}
-                    <button class="button" onclick="location.href='{% url 'add_swimmer' %}'; return false;">
+                    <button class="button" id="addSwimmerBtn">
                         <i class="fa-solid fa-plus"></i> Add Swimmer
                     </button>
                 {% endif %}
@@ -208,6 +208,14 @@
                                         <button type="submit" class="delete-button"><i class="fa-regular fa-trash-can"></i>
                                         </button>
                                     </form>
+                                    {% if have_perm %}
+                                    <form action="{% url 'toggle_favorite' swimmer.id %}" method="post" class="favorite-form" data-swimmer-id="{{ swimmer.id }}">
+                                        {% csrf_token %}
+                                        <button type="button" class="favorite-button {% if swimmer in current_volunteer.favorites.all %}favorited{% endif %}">
+                                            <i class="fa-solid fa-star"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
                             </td>
@@ -227,7 +235,7 @@
                 <h2>Volunteers</h2>
                 <div class="volunteer-header">
                     {% if have_perm %}
-                        <button class="button" onclick="location.href='{% url 'add_volunteer' %}'; return false;">
+                        <button class="button" id="addVolunteerBtn">
                             <i class="fa-solid fa-plus"></i> Add Volunteer
                         </button>
                     {% endif %}
@@ -249,12 +257,114 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 面板切换按钮 -->
+        <button id="panelToggleBtn" class="panel-toggle" title="切换侧栏">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
     </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 注意：此处事件绑定已移至real_time_leaderboard.js
-            // 为避免重复绑定，保留此注释以便后续维护
+            // 添加游泳者和志愿者按钮事件
+            const addSwimmerBtn = document.getElementById('addSwimmerBtn');
+            if (addSwimmerBtn) {
+                addSwimmerBtn.addEventListener('click', function() {
+                    location.href = "{% url 'add_swimmer' %}";
+                    return false;
+                });
+            }
+            
+            const addVolunteerBtn = document.getElementById('addVolunteerBtn');
+            if (addVolunteerBtn) {
+                addVolunteerBtn.addEventListener('click', function() {
+                    location.href = "{% url 'add_volunteer' %}";
+                    return false;
+                });
+            }
+            
+            // Handle favorite button clicks
+            document.querySelectorAll('.favorite-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const form = this.closest('.favorite-form');
+                    const swimmerId = form.dataset.swimmerId;
+                    const currentStatus = this.classList.contains('favorited');
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin' // 确保发送和接收cookie
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`请求失败: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const newStatus = data.is_favorite;
+                            
+                            // 切换收藏状态样式（根据服务器返回的状态更新）
+                            if (newStatus) {
+                                this.classList.add('favorited');
+                            } else {
+                                this.classList.remove('favorited');
+                            }
+                            
+                            // 重排表格行
+                            const tbody = document.querySelector('#swimmersTable tbody');
+                            const rows = Array.from(tbody.querySelectorAll('tr'));
+                            
+                            rows.sort((a, b) => {
+                                const aFavorited = a.querySelector('.favorite-button')?.classList.contains('favorited') || false;
+                                const bFavorited = b.querySelector('.favorite-button')?.classList.contains('favorited') || false;
+                                if (aFavorited === bFavorited) {
+                                    return a.querySelector('td').textContent.localeCompare(b.querySelector('td').textContent);
+                                }
+                                return bFavorited - aFavorited;
+                            });
+                            rows.forEach(row => tbody.appendChild(row));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('请求失败:', error);
+                    });
+                });
+            });
+            
+            // 面板收缩功能
+            const toggleBtn = document.getElementById('panelToggleBtn');
+            const container = document.getElementById('mainContainer');
+            
+            // 检查本地存储中的状态
+            const isPanelCollapsed = localStorage.getItem('panelCollapsed') === 'true';
+            if (isPanelCollapsed) {
+                container.classList.add('panel-collapsed');
+                toggleBtn.classList.add('collapsed');
+                toggleBtn.querySelector('i').classList.remove('fa-chevron-left');
+                toggleBtn.querySelector('i').classList.add('fa-chevron-right');
+            }
+            
+            toggleBtn.addEventListener('click', function() {
+                container.classList.toggle('panel-collapsed');
+                this.classList.toggle('collapsed');
+                
+                // 切换图标
+                const icon = this.querySelector('i');
+                if (container.classList.contains('panel-collapsed')) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                    localStorage.setItem('panelCollapsed', 'true');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                    localStorage.setItem('panelCollapsed', 'false');
+                }
+            });
         });
     </script>
 {% endblock %}

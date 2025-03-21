@@ -1,12 +1,18 @@
 html {
     background-size: cover;
     background: #1a73e8 url("../image/ykps_swim_pool.webp") no-repeat fixed center center;
+    height: 100%;
+    overflow: hidden;
 }
 
 html, body {
     min-height: 100%;
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    height: 100%;
 }
 
 :root {
@@ -32,25 +38,47 @@ html, body {
     width: 95%;
     max-width: 1800px;
     margin: 20px auto;
-    height: calc(100vh - 40px);
+    min-height: calc(100vh - 40px);
     color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+/* 控制面板收缩时的容器样式 */
+.container.panel-collapsed {
+    grid-template-columns: 0 1fr;
 }
 
 .left-panel {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    height: 100%;
+    height: auto;
+    transition: all 0.3s ease;
+    overflow: visible;
+    padding-right: 5px;
+    margin-bottom: 20px;
+}
+
+.panel-collapsed .left-panel {
+    margin-left: -330px;
+    opacity: 0;
 }
 
 .right-panel {
-    background: rgba(15, 30, 60, 0.75);  /* 稍深一点的背景色 */
+    background: rgba(15, 30, 60, 0.75);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     overflow-y: auto;
     padding: 20px;
+    margin-bottom: 20px;
+}
+
+.panel-collapsed .right-panel {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .title {
@@ -484,7 +512,7 @@ td.house-winter {
 }
 
 /* 按钮样式 */
-.edit-button, .delete-button {
+.edit-button, .delete-button, .favorite-button {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -516,6 +544,21 @@ td.house-winter {
     color: white;
     transform: translateY(-3px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* 添加收藏按钮的金色样式 */
+.favorite-button.favorited {
+    color: gold; /* 只有星星图标变成金色 */
+}
+
+.favorite-button.favorited:hover {
+    color: gold; /* 悬停时保持金色 */
+    transform: translateY(-3px);
+}
+
+.favorite-button:hover {
+    background-color: rgba(255, 255, 255, 0.25); /* 与其他按钮保持一致的悬停背景 */
+    transform: translateY(-3px);
 }
 
 form {
@@ -1832,4 +1875,62 @@ input[type="checkbox"]:checked + .leaderboard-status {
 
 .minus-button:hover:not(:disabled) {
     background: #f44336;
+}
+
+/* 面板切换按钮样式 */
+.panel-toggle {
+    position: fixed;
+    left: 0;
+    bottom: 20px;
+    width: 30px;
+    height: 36px;
+    background: var(--main-color);
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.panel-toggle:hover {
+    background: var(--main-color-dark);
+    width: 35px;
+}
+
+.panel-toggle.collapsed {
+    left: 0;
+}
+
+.panel-toggle.collapsed i {
+    transform: rotate(180deg);
+}
+
+/* 适配切换按钮响应式布局 */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .container.panel-collapsed {
+        grid-template-columns: 1fr;
+    }
+    
+    .left-panel {
+        margin-bottom: 20px;
+    }
+    
+    .panel-collapsed .left-panel {
+        display: none;
+    }
+    
+    .panel-toggle {
+        bottom: 15px;
+        left: 0;
+    }
 }

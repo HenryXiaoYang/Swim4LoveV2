@@ -23,6 +23,7 @@ class Swimmer(models.Model):
 class Volunteer(models.Model):
     student_id = models.CharField(max_length=10, help_text="Please enter your student ID.", primary_key=True)
     name = models.CharField(max_length=100, help_text="Please enter your name.", unique=True)
+    favorites = models.ManyToManyField(Swimmer, related_name='favorited_by', blank=True)
 
     def __str__(self):
         return self.name
