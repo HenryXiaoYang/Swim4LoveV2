@@ -32,8 +32,47 @@ DJANGO_SECRET_KEY=your_secret_key
 
 Make sure to keep your keys safe!
 
-5. Edit the Swim4LoveV2/settings.py file if you need to change some Django settings.
+4. Configure CSRF settings in DjangoConfigs/settings.py:
 
+Django 4.0+ requires explicit configuration of trusted origins for CSRF protection. This is important for security, especially when deploying to production or when your application is accessed from different domains or IPs.
+
+```python
+# For local development
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# For production - add your actual domain(s)
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://yourwebsite.com',
+#     'https://www.yourwebsite.com',
+# ]
+```
+
+Note: Always include the scheme (http:// or https://) in CSRF_TRUSTED_ORIGINS entries.
+
+If you need to dynamically determine your server's IP address (useful in some deployment scenarios), you can use:
+
+```python
+import socket
+
+# Get the hostname
+hostname = socket.gethostname()
+# Get the IP address
+ip_address = socket.gethostbyname(hostname)
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    f'http://{ip_address}:8000',
+    f'https://{ip_address}:8000',
+]
+```
+
+If you continue to experience CSRF issues, consider installing django-cors-headers for more advanced cross-origin resource sharing control.
+
+5. Edit the Swim4LoveV2/settings.py file if you need to change some Django settings.
 
 6. Collect static files:
 
@@ -73,7 +112,24 @@ gunicorn DjangoConfigs.wsgi -c gunicorn.conf.py
 sudo docker build -t henryxiaoyang/swim4lovev2 .
 ```
 
-2. Run the image:
+2. Configure CSRF in your environment variables:
+
+For Docker deployments, you may need to pass your domain as an environment variable and configure your settings.py to use it. Add a section to your settings.py that reads from environment variables:
+
+```python
+# In DjangoConfigs/settings.py
+import os
+
+# Get domains from environment or use defaults
+csrf_trusted_domains = os.environ.get('CSRF_TRUSTED_DOMAINS', 'localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = []
+
+for domain in csrf_trusted_domains:
+    CSRF_TRUSTED_ORIGINS.append(f'http://{domain}')
+    CSRF_TRUSTED_ORIGINS.append(f'https://{domain}')
+```
+
+3. Run the image:
 
 ```sh
 sudo docker run -d \
@@ -81,6 +137,7 @@ sudo docker run -d \
   --restart always \
   -v swim4lovev2:/app \
   -e DJANGO_SECRET_KEY=Your-Secret-Key \
+  -e CSRF_TRUSTED_DOMAINS=yourwebsite.com,www.yourwebsite.com \
   -p 8000:8000 \
   henryxiaoyang/swim4lovev2
 ```
@@ -99,6 +156,7 @@ services:
         - swim4lovev2:/app
     environment:
       DJANGO_SECRET_KEY: Your-Secret-Key
+      CSRF_TRUSTED_DOMAINS: yourwebsite.com,www.yourwebsite.com
     ports:
       - "8000:8000"
 
@@ -109,3 +167,38 @@ volumes:
 ```sh
 docker-compose up -d
 ```
+
+## Troubleshooting CSRF Issues
+
+If you encounter CSRF verification errors (403 Forbidden), try the following solutions:
+
+1. **Verify CSRF_TRUSTED_ORIGINS includes the correct domain(s):**
+   - Make sure all domains include the scheme (`http://` or `https://`)
+   - Check for any subdomain issues (you may need to include both root domain and www version)
+   - For dynamic IPs, ensure the current IP is included
+
+2. **Common error messages and solutions:**
+   - "Origin checking failed - X does not match any trusted origins": Add the domain X to your CSRF_TRUSTED_ORIGINS list
+   - "CSRF cookie not set": Ensure your browser accepts cookies and Django's session middleware is correctly configured
+   - "Referer checking failed": Check that your browser sends proper referer headers
+
+3. **For development environments:**
+   - If testing with different ports or domains, make sure all are included in CSRF_TRUSTED_ORIGINS
+   - When using Docker or containers, ensure the host's domain is properly passed to the container
+
+4. **For production environments:**
+   - Always use HTTPS in production for better security
+   - Consider using wildcard subdomains if needed: `'https://*.example.com'`
+
+5. **Last resort options:**
+   - For specific views that don't require CSRF protection, you can use the `@csrf_exempt` decorator:
+   ```python
+   from django.views.decorators.csrf import csrf_exempt
+   
+   @csrf_exempt
+   def my_view(request):
+       # ...
+   ```
+   - Consider installing and configuring django-cors-headers for more complex cross-origin scenarios
+
+Remember that proper CSRF protection is critical for security. Avoid disabling it globally.
