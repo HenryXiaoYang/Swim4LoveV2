@@ -135,9 +135,21 @@ html, body {
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: auto auto;
     gap: 10px;
     margin-bottom: 12px;
+}
+
+/* 在小屏幕上调整数据卡片为垂直排列 */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+    
+    .count-box.total-laps {
+        grid-column: auto;
+    }
 }
 
 .count-box {
@@ -172,6 +184,19 @@ html, body {
 .count-box div {
     font-size: 26px;
     font-weight: bold;
+}
+
+/* Total Laps的长方形卡片样式 */
+.count-box.total-laps {
+    grid-column: 1 / span 2;
+}
+
+.count-box.total-laps strong {
+    font-size: 18px;
+}
+
+.count-box.total-laps div {
+    font-size: 28px;
 }
 
 /* 学院卡片（春夏秋冬） */
@@ -664,7 +689,7 @@ form {
     background: rgba(15, 30, 60, 0.75);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    padding: 45px 50px 50px;
+    padding: 45px 50px 110px;
     border-radius: var(--border-radius);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
     width: 100%;
@@ -879,13 +904,18 @@ form {
 /* 添加版权信息在登录页面底部 */
 .login-footer {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     left: 0;
     right: 0;
     text-align: center;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 12px;
-    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.login-footer p {
+    margin: 0;
+    padding: 0;
 }
 
 /* 响应式调整 */
@@ -893,11 +923,16 @@ form {
     .login-container {
         max-width: 95%;
         margin: 40px auto;
-        padding: 35px 20px 40px;
+        padding: 35px 20px 100px; /* 确保在小屏幕上也有足够的底部空间 */
     }
     
     .login-form {
         padding: 0;
+    }
+    
+    .login-footer {
+        bottom: 25px; /* 小屏幕上稍微上调页脚位置 */
+        font-size: 12px; /* 小屏幕上字体可以稍微小一点 */
     }
 }
 
@@ -1933,4 +1968,23 @@ input[type="checkbox"]:checked + .leaderboard-status {
         bottom: 15px;
         left: 0;
     }
+}
+
+/* 页脚样式 */
+.footer {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 15px 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-top: 20px;
+    background: var(--background-blur);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.footer p {
+    margin: 0;
 }

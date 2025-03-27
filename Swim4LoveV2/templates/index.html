@@ -53,13 +53,9 @@
                     <strong>Volunteers</strong>
                     <div>{{ num_volunteers }}</div>
                 </div>
-                <div class="count-box">
+                <div class="count-box total-laps">
                     <strong>Total Laps</strong>
                     <div>{{ total_laps }}</div>
-                </div>
-                <div class="count-box">
-                    <strong>Raised</strong>
-                    <div>{{ amount_raised }}¥</div>
                 </div>
             </div>
 
@@ -262,6 +258,12 @@
         <button id="panelToggleBtn" class="panel-toggle" title="切换侧栏">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
+        
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>© {% now "Y" %} Swim4Love 为爱畅游</p>
+            <p>By Henry Yang</p>
+        </div>
     </div>
 
     <script>
