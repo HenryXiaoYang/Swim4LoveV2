@@ -60,21 +60,22 @@ function sortTable(column, reverse = false) {
                 };
                 break;
             case 'lap_count':
-                compareFunction = (a, b) => parseInt(a.cells[columnIndex(column)].innerText) - parseInt(b.cells[columnIndex(column)].innerText);
-                break;
-            case 'time':
                 compareFunction = (a, b) => {
-                    const timeA = parseTime(a.cells[columnIndex('time')].innerText);
-                    const timeB = parseTime(b.cells[columnIndex('time')].innerText);
-                    return timeA - timeB;
+                    // Get the lap count from the span element specifically
+                    const lapSpanA = a.cells[columnIndex(column)].querySelector('.lap-count');
+                    const lapSpanB = b.cells[columnIndex(column)].querySelector('.lap-count');
+                    const lapA = lapSpanA ? parseInt(lapSpanA.innerText) : 0;
+                    const lapB = lapSpanB ? parseInt(lapSpanB.innerText) : 0;
+                    return lapA - lapB;
                 };
                 break;
         }
 
         rows.sort((a, b) => reverse ? -compareFunction(a, b) : compareFunction(a, b));
 
-        // Re-append sorted rows
-        rows.forEach(row => table.appendChild(row));
+        // Re-append sorted rows to tbody instead of table
+        const tbody = table.querySelector('tbody');
+        rows.forEach(row => tbody.appendChild(row));
     }
 }
 
@@ -88,16 +89,9 @@ function columnIndex(column) {
             return 2;
         case 'lap_count':
             return 3;
-        case 'time':
-            return 4;
         default:
             return -1;
     }
-}
-
-function parseTime(timeStr) {
-    const [minutes, seconds] = timeStr.split(' ').map(part => parseInt(part));
-    return (minutes * 60) + seconds;
 }
 
 // real_time_leaderboard.js functionality
@@ -135,7 +129,9 @@ function toggleLeaderboard() {
 }
 
 function refreshTable() {
-    fetch("?leaderboard=true")
+    const searchQuery = document.querySelector('input[name="search"]').value;
+    const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
+    fetch(`?leaderboard=true${searchParam}`)
         .then(response => response.text())
         .then(data => {
             const parser = new DOMParser();
@@ -247,45 +243,89 @@ function updateElements(selector, docSource) {
 function rebindLapButtonEvents() {
     // 获取所有加减圈按钮
     const lapButtons = document.querySelectorAll('.lap-button');
+    console.log(`Found ${lapButtons.length} lap buttons to bind events to`);
     
     // 为每个按钮添加点击事件
-    lapButtons.forEach(button => {
+    lapButtons.forEach((button, index) => {
         // 清除现有事件以避免重复绑定
         button.removeEventListener('click', handleLapButtonClick);
         // 添加新事件
         button.addEventListener('click', handleLapButtonClick);
+        
+        // 添加调试信息
+        const form = button.closest('form');
+        if (form) {
+            console.log(`Button ${index + 1}: swimmer-id=${form.dataset.swimmerId}, action=${form.dataset.action}`);
+        } else {
+            console.warn(`Button ${index + 1}: No form found`);
+        }
+    });
+    
+    // 确保所有减号按钮的初始状态正确
+    lapButtons.forEach(button => {
+        if (button.classList.contains('minus-button')) {
+            const form = button.closest('form');
+            if (form) {
+                const swimmerId = form.dataset.swimmerId;
+                const lapCountElement = document.getElementById(`lap-count-${swimmerId}`);
+                if (lapCountElement) {
+                    const currentLaps = parseInt(lapCountElement.textContent) || 0;
+                    button.disabled = currentLaps <= 0;
+                }
+            }
+        }
     });
 }
 
 // 按钮点击处理函数
-function handleLapButtonClick() {
+function handleLapButtonClick(event) {
+    // 阻止默认行为和事件冒泡
+    event.preventDefault();
+    event.stopPropagation();
+    
     // 如果按钮被禁用，不执行操作
     if (this.hasAttribute('disabled')) return;
     
     // 获取表单和相关数据
     const form = this.closest('form');
+    if (!form) {
+        console.error('Could not find form element');
+        return;
+    }
+    
     const swimmerId = form.dataset.swimmerId;
     const action = form.dataset.action;
     const url = form.action;
     const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
     
+    if (!swimmerId || !action || !url || !csrfToken) {
+        console.error('Missing required form data:', { swimmerId, action, url, csrfToken });
+        return;
+    }
+    
     // 获取当前圈数显示元素
     const lapCountElement = document.getElementById(`lap-count-${swimmerId}`);
-    const currentLaps = parseInt(lapCountElement.textContent);
+    if (!lapCountElement) {
+        console.error(`Could not find lap count element: lap-count-${swimmerId}`);
+        return;
+    }
+    
+    const currentLaps = parseInt(lapCountElement.textContent) || 0;
     
     // 防止负值
     if (action === 'decrement' && currentLaps <= 0) return;
     
+    // 临时禁用按钮防止重复点击
+    this.disabled = true;
+    
     // 乐观更新UI（不等待服务器响应）
+    let newLapCount = currentLaps;
     if (action === 'increment') {
-        lapCountElement.textContent = currentLaps + 1;
+        newLapCount = currentLaps + 1;
+        lapCountElement.textContent = newLapCount;
     } else if (action === 'decrement' && currentLaps > 0) {
-        lapCountElement.textContent = currentLaps - 1;
-        
-        // 如果圈数为1且要减1，则禁用减号按钮
-        if (currentLaps === 1) {
-            this.disabled = true;
-        }
+        newLapCount = currentLaps - 1;
+        lapCountElement.textContent = newLapCount;
     }
     
     // 发送AJAX请求
@@ -297,152 +337,136 @@ function handleLapButtonClick() {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // 更新为服务器返回的实际值
             lapCountElement.textContent = data.lap_count;
             
-            // 根据返回的圈数更新按钮状态
-            if (action === 'decrement') {
-                const minusButton = form.querySelector('.minus-button');
-                if (data.lap_count <= 0) {
-                    minusButton.disabled = true;
-                } else {
-                    minusButton.disabled = false;
-                }
+            // 更新按钮状态
+            const minusButton = form.querySelector('.minus-button');
+            const plusButton = form.querySelector('.plus-button');
+            
+            if (minusButton) {
+                minusButton.disabled = data.lap_count <= 0;
+            }
+            if (plusButton) {
+                plusButton.disabled = false;
             }
             
             // 更新学院圈数
-            const house = data.house.toLowerCase();
-            document.querySelector(`.house-${house} div`).textContent = data[`${house}_laps`];
+            if (data.house) {
+                const house = data.house.toLowerCase();
+                const houseElement = document.querySelector(`.house-${house} div`);
+                if (houseElement && data[`${house}_laps`] !== undefined) {
+                    houseElement.textContent = data[`${house}_laps`];
+                }
+            }
             
-            // 更新总圈数和筹集金额
-            document.querySelector('.count-box:nth-child(3) div').textContent = data.total_laps;
-            document.querySelector('.count-box:nth-child(4) div').textContent = data.amount_raised + '¥';
+            // 更新总圈数
+            if (data.total_laps !== undefined) {
+                const totalLapsElement = document.querySelector('.total-laps div');
+                if (totalLapsElement) {
+                    totalLapsElement.textContent = data.total_laps;
+                }
+            }
+        } else {
+            throw new Error(data.message || 'Server returned error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
         // 发生错误时恢复原来的值
         lapCountElement.textContent = currentLaps;
+        alert('Failed to update lap count. Please try again.');
+    })
+    .finally(() => {
+        // 重新启用按钮
+        this.disabled = false;
+        
+        // 对于减号按钮，检查是否应该保持禁用状态
+        if (action === 'decrement') {
+            const currentDisplayValue = parseInt(lapCountElement.textContent) || 0;
+            if (currentDisplayValue <= 0) {
+                this.disabled = true;
+            }
+        }
     });
 }
 
 // 初始化时绑定事件
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Initializing Swim4Love JavaScript');
+    
     // 检查是否在index.html页面上
     if (document.querySelector('#leaderboard-switch')) {
+        console.log('Leaderboard found, initializing leaderboard functionality');
+        
         // 绑定排行榜切换事件
         const leaderboardSwitch = document.querySelector('#leaderboard-switch');
         if (leaderboardSwitch.checked) {
             autoRefresh = true;
             refreshInterval = setInterval(refreshTable, 5000);
+            console.log('Auto-refresh enabled');
         }
         
         // 初始绑定按钮事件
+        console.log('Binding lap button events...');
         rebindLapButtonEvents();
+    } else {
+        console.log('Not on index page, skipping leaderboard initialization');
     }
     
     // 添加游泳者和志愿者按钮事件
     const addSwimmerBtn = document.getElementById('addSwimmerBtn');
     if (addSwimmerBtn) {
+        console.log('Add swimmer button found, binding click event');
         addSwimmerBtn.addEventListener('click', function() {
             location.href = "{% url 'add_swimmer' %}";
             return false;
         });
     }
     
-    const addVolunteerBtn = document.getElementById('addVolunteerBtn');
-    if (addVolunteerBtn) {
-        addVolunteerBtn.addEventListener('click', function() {
-            location.href = "{% url 'add_volunteer' %}";
-            return false;
-        });
-    }
-    
-    // Handle favorite button clicks
-    document.querySelectorAll('.favorite-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.favorite-form');
-            const swimmerId = form.dataset.swimmerId;
-            const currentStatus = this.classList.contains('favorited');
-            
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin' // 确保发送和接收cookie
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    const newStatus = data.is_favorite;
-                    
-                    // 切换收藏状态样式（根据服务器返回的状态更新）
-                    if (newStatus) {
-                        this.classList.add('favorited');
-                    } else {
-                        this.classList.remove('favorited');
-                    }
-                    
-                    // 重排表格行
-                    const tbody = document.querySelector('#swimmersTable tbody');
-                    const rows = Array.from(tbody.querySelectorAll('tr'));
-                    
-                    rows.sort((a, b) => {
-                        const aFavorited = a.querySelector('.favorite-button')?.classList.contains('favorited') || false;
-                        const bFavorited = b.querySelector('.favorite-button')?.classList.contains('favorited') || false;
-                        if (aFavorited === bFavorited) {
-                            return a.querySelector('td').textContent.localeCompare(b.querySelector('td').textContent);
-                        }
-                        return bFavorited - aFavorited;
-                    });
-                    rows.forEach(row => tbody.appendChild(row));
-                }
-            })
-            .catch(error => {
-                console.error('请求失败:', error);
-            });
-        });
-    });
-    
     // 面板收缩功能
     const toggleBtn = document.getElementById('panelToggleBtn');
     const container = document.getElementById('mainContainer');
     
-    // 检查本地存储中的状态
-    const isPanelCollapsed = localStorage.getItem('panelCollapsed') === 'true';
-    if (isPanelCollapsed) {
-        container.classList.add('panel-collapsed');
-        toggleBtn.classList.add('collapsed');
-        toggleBtn.querySelector('i').classList.remove('fa-chevron-left');
-        toggleBtn.querySelector('i').classList.add('fa-chevron-right');
+    if (toggleBtn && container) {
+        console.log('Panel toggle functionality initialized');
+        
+        // 检查本地存储中的状态
+        const isPanelCollapsed = localStorage.getItem('panelCollapsed') === 'true';
+        if (isPanelCollapsed) {
+            container.classList.add('panel-collapsed');
+            toggleBtn.classList.add('collapsed');
+            toggleBtn.querySelector('i').classList.remove('fa-chevron-left');
+            toggleBtn.querySelector('i').classList.add('fa-chevron-right');
+        }
+        
+        toggleBtn.addEventListener('click', function() {
+            container.classList.toggle('panel-collapsed');
+            this.classList.toggle('collapsed');
+            
+            // 切换图标
+            const icon = this.querySelector('i');
+            if (container.classList.contains('panel-collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+                localStorage.setItem('panelCollapsed', 'true');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+                localStorage.setItem('panelCollapsed', 'false');
+            }
+        });
     }
     
-    toggleBtn.addEventListener('click', function() {
-        container.classList.toggle('panel-collapsed');
-        this.classList.toggle('collapsed');
-        
-        // 切换图标
-        const icon = this.querySelector('i');
-        if (container.classList.contains('panel-collapsed')) {
-            icon.classList.remove('fa-chevron-left');
-            icon.classList.add('fa-chevron-right');
-            localStorage.setItem('panelCollapsed', 'true');
-        } else {
-            icon.classList.remove('fa-chevron-right');
-            icon.classList.add('fa-chevron-left');
-            localStorage.setItem('panelCollapsed', 'false');
-        }
-    });
+    console.log('Swim4Love JavaScript initialization complete');
 });
 </script>
 {% endblock %}
@@ -452,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- 左侧面板 -->
         <div class="left-panel">
             <!-- 用户登录信息 -->
-            {% if user.is_authenticated %}
+            {% if passkey_authenticated %}
                 <div class="user-info-panel">
                     <div class="panel-header">
                          <div class="user-avatar">
@@ -461,10 +485,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h2 class="app-title">Swim4Love</h2>
                     </div>
                     <div class="user-profile">
-                        <div class="user-details">
-                            <span class="welcome-text">Welcome</span>
-                            <span class="username">{{ user.username }}</span>
-                            <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        <div class="user-details" style="text-align: center;">
+                            <form action="{% url 'passkey_logout' %}" method="post" class="logout-form">
                                 {% csrf_token %}
                                 <button type="submit" class="logout-button">
                                     <i class="fa-solid fa-sign-out-alt"></i> Logout
@@ -481,25 +503,21 @@ document.addEventListener('DOMContentLoaded', function() {
                        </div>
                        <h2 class="app-title">Swim4Love</h2>
                    </div>
-                    <a href="{% url 'login' %}" class="login-button-large">
+                    <a href="{% url 'passkey_login' %}" class="login-button-large">
                         <i class="fa-solid fa-right-to-bracket"></i>
-                        <span>Login</span>
+                        <span>Enter passkey</span>
                     </a>
-                    <p class="login-hint">Log in to manage swimmer and volunteer data</p>
+                    <p class="login-hint">Enter passkey to insert data</p>
                 </div>
             {% endif %}
 
             <!-- 上部数据卡片 -->
-            <div class="stats-grid">
-                <div class="count-box">
+            <div class="stats-grid" style="display: flex; gap: 15px; justify-content: space-between; flex-wrap: wrap;">
+                <div class="count-box" style="flex: 1; min-width: 120px;">
                     <strong>Swimmers</strong>
                     <div>{{ num_swimmers }}</div>
                 </div>
-                <div class="count-box">
-                    <strong>Volunteers</strong>
-                    <div>{{ num_volunteers }}</div>
-                </div>
-                <div class="count-box total-laps">
+                <div class="count-box total-laps" style="flex: 1; min-width: 120px;">
                     <strong>Total Laps</strong>
                     <div>{{ total_laps }}</div>
                 </div>
@@ -548,12 +566,34 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="right-panel">
             <!-- 游泳者部分 -->
             <div class="swimmers-section">
-                <h2>Swimmers</h2>
-                {% if have_perm %}
-                    <button class="button" id="addSwimmerBtn">
-                        <i class="fa-solid fa-plus"></i> Add Swimmer
-                    </button>
-                {% endif %}
+                <div class="swimmers-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <h2 style="margin: 0;">Swimmers</h2>
+                        {% if have_perm %}
+                            <button class="button" id="addSwimmerBtn">
+                                <i class="fa-solid fa-plus"></i> Add Swimmer
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="search-container" style="display: flex; align-items: center; gap: 5px;">
+                        <form method="get" style="display: flex; align-items: center; gap: 5px;">
+                            <input type="hidden" name="leaderboard" value="{{ leaderboard|yesno:'true,false' }}">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ search_query }}" 
+                                   placeholder="Search swimmers..." 
+                                   class="search-input">
+                            <button type="submit" class="search-button">
+                                <i class="fa-solid fa-search"></i>
+                            </button>
+                            {% if search_query %}
+                            <a href="?leaderboard={{ leaderboard|yesno:'true,false' }}" class="clear-search">
+                                <i class="fa-solid fa-times"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
 
                 <table class="styled-table {% if have_perm %}has-operations{% endif %}" id="swimmersTable">
                     <thead>
@@ -650,14 +690,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <button type="submit" class="delete-button"><i class="fa-regular fa-trash-can"></i>
                                         </button>
                                     </form>
-                                    {% if have_perm %}
-                                    <form action="{% url 'toggle_favorite' swimmer.id %}" method="post" class="favorite-form" data-swimmer-id="{{ swimmer.id }}">
-                                        {% csrf_token %}
-                                        <button type="button" class="favorite-button {% if swimmer in current_volunteer.favorites.all %}favorited{% endif %}">
-                                            <i class="fa-solid fa-star"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
                                 </div>
                                 {% endif %}
                             </td>
@@ -670,33 +702,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fa-solid fa-download"></i> Download Excel
                     </button>
                 {% endif %}
-            </div>
-
-            <!-- 志愿者部分 -->
-            <div class="volunteers-section">
-                <h2>Volunteers</h2>
-                <div class="volunteer-header">
-                    {% if have_perm %}
-                        <button class="button" id="addVolunteerBtn">
-                            <i class="fa-solid fa-plus"></i> Add Volunteer
-                        </button>
-                    {% endif %}
-                </div>
-                <div class="volunteer-grid">
-                    {% for volunteer in volunteers %}
-                        <div class="volunteer-box">
-                            <span class="volunteer-name">{{ volunteer.name }}</span>
-                            {% if have_perm %}
-                                <form action="{% url 'delete_volunteer' volunteer.student_id %}" method="post"
-                                      onsubmit="confirmDelete(event)">
-                                    {% csrf_token %}
-                                    <button type="submit" class="delete-volunteer-button"><i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
             </div>
         </div>
         

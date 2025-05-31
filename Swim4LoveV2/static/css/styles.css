@@ -321,22 +321,22 @@ html, body {
 .swimmers-section h2 {
     color: white;
     text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-weight: 600;
 }
 
 .styled-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px;
-    margin: 20px 0;
-    font-size: 16px;
+    border-spacing: 0 6px;
+    margin: 15px 0;
+    font-size: 14px;
     text-align: center;
     table-layout: fixed;
 }
 
 .styled-table th, .styled-table td {
-    padding: 15px 20px;
+    padding: 10px 15px;
     text-align: center;
 }
 
@@ -444,7 +444,7 @@ html, body {
     background: var(--background-blur);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-radius: var(--border-radius);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: var(--transition);
@@ -543,18 +543,18 @@ td.house-winter {
     -webkit-backdrop-filter: blur(10px);
     color: white;
     border: none;
-    padding: 10px;
+    padding: 8px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     transition: var(--transition);
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin: 0 5px;
+    margin: 0 3px;
 }
 
 .edit-button:hover {
@@ -1859,22 +1859,22 @@ input[type="checkbox"]:checked + .leaderboard-status {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .lap-button {
     background: rgba(255, 255, 255, 0.15);
     border: none;
     color: white;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .lap-button:hover:not(:disabled) {
@@ -1888,9 +1888,9 @@ input[type="checkbox"]:checked + .leaderboard-status {
 }
 
 .lap-count {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
-    min-width: 40px;
+    min-width: 35px;
     text-align: center;
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -1987,4 +1987,76 @@ input[type="checkbox"]:checked + .leaderboard-status {
 
 .footer p {
     margin: 0;
+}
+
+/* 搜索框样式 */
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius);
+    width: 200px;
+    background: var(--background-blur);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    font-size: 14px;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3);
+}
+
+.search-button {
+    padding: 8px 12px;
+    background: var(--main-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-button:hover {
+    background: var(--main-color-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.clear-search {
+    padding: 8px 12px;
+    background: rgba(108, 117, 125, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clear-search:hover {
+    background: rgba(108, 117, 125, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

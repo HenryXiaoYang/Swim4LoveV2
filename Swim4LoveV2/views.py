@@ -1,45 +1,63 @@
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils.html import escape
+from django.conf import settings
+from django.db.models import Q
 
-from .forms import AddSwimmerForm, AddVolunteerForm
-from .models import Swimmer, Volunteer
+from .forms import AddSwimmerForm
+from .models import Swimmer
 
+def check_passkey(request):
+    """Check if the user has entered the correct passkey"""
+    return request.session.get('passkey_authenticated', False)
+
+def passkey_required(view_func):
+    """Decorator to require passkey authentication"""
+    def wrapper(request, *args, **kwargs):
+        if not check_passkey(request):
+            return HttpResponseRedirect(reverse('passkey_login'))
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+def passkey_login(request):
+    """Handle passkey authentication"""
+    if request.method == "POST":
+        entered_passkey = request.POST.get('passkey', '')
+        if entered_passkey == settings.PASSKEY:
+            request.session['passkey_authenticated'] = True
+            return HttpResponseRedirect(reverse('home'))
+        else:
+            return render(request, "passkey_login.html", {"error": "Incorrect passkey"})
+    
+    return render(request, "passkey_login.html")
+
+def passkey_logout(request):
+    """Logout by removing passkey authentication"""
+    request.session.pop('passkey_authenticated', None)
+    return HttpResponseRedirect(reverse('home'))
 
 def index(request):
     leaderboard = request.GET.get('leaderboard', 'false') == 'true'
+    search_query = request.GET.get('search', '').strip()
 
     num_swimmers = Swimmer.objects.all().count()
-    num_volunteers = Volunteer.objects.all().count()
-
-    # Get the current user's volunteer profile if logged in
-    current_volunteer = None
-    if request.user.is_authenticated:
-        try:
-            current_volunteer = Volunteer.objects.get(name=request.user.username)
-        except Volunteer.DoesNotExist:
-            # 如果是管理员/超级用户，尝试自动创建志愿者记录（仅供显示用，不保存）
-            if request.user.is_staff or request.user.is_superuser:
-                # 只检查是否存在对应的志愿者记录，如果不存在，首次加载时不显示收藏状态
-                # 用户点击收藏按钮后，toggle_favorite会创建记录并添加收藏
-                pass
 
     # Get all swimmers and sort them
     swimmers = Swimmer.objects.all()
+    
+    # Apply search filter if search query exists
+    if search_query:
+        swimmers = swimmers.filter(
+            Q(name__icontains=search_query) |
+            Q(student_id__icontains=search_query) |
+            Q(house__icontains=search_query)
+        )
+    
     if leaderboard:
         swimmers = swimmers.order_by('-lap_count')
-    elif current_volunteer:
-        # Sort by favorites first, then by name
-        swimmers = sorted(swimmers, key=lambda s: (not current_volunteer.favorites.filter(id=s.id).exists(), s.name))
     else:
         swimmers = swimmers.order_by('name')
-
-    volunteers = Volunteer.objects.all()
 
     spring_laps = sum([swimmer.lap_count for swimmer in swimmers if swimmer.house == "Spring"])
     summer_laps = sum([swimmer.lap_count for swimmer in swimmers if swimmer.house == "Summer"])
@@ -49,7 +67,7 @@ def index(request):
 
     amount_raised = total_laps * 5  # Each lap raise 5 rmb
 
-    have_perm = request.user.has_perm("Swim4LoveV2.add_swimmer") and request.user.has_perm("Swim4LoveV2.add_volunteer")
+    have_perm = check_passkey(request)
 
     # 创建学院数据字典，用于排序（如果启用排行榜）
     house_data = [
@@ -68,9 +86,7 @@ def index(request):
         "num_swimmers": num_swimmers,
         "total_laps": total_laps,
         "amount_raised": amount_raised,
-        "num_volunteers": num_volunteers,
         "swimmers": swimmers,
-        "volunteers": volunteers,
         "have_perm": have_perm,
         "leaderboard": leaderboard,
         "house_data": house_data,
@@ -78,14 +94,14 @@ def index(request):
         "summer_laps": summer_laps,
         "autumn_laps": autumn_laps,
         "winter_laps": winter_laps,
-        "current_volunteer": current_volunteer,
+        "passkey_authenticated": check_passkey(request),
+        "search_query": search_query,
     }
 
     return render(request, "index.html", context=context)
 
 
-# need to be volunteer
-@permission_required("Swim4LoveV2.add_swimmer")
+@passkey_required
 def add_swimmer(request):
     if request.method == "POST":
         form = AddSwimmerForm(request.POST)
@@ -115,14 +131,14 @@ def add_swimmer(request):
     return render(request, "add_swimmer.html", context={"form": form})
 
 
-@permission_required("Swim4LoveV2.add_swimmer")
+@passkey_required
 def delete_swimmer(request, pk):
     if request.method == "POST":
         Swimmer.objects.filter(id=pk).delete()
     return HttpResponseRedirect(reverse('home'))
 
 
-@permission_required("Swim4LoveV2.add_swimmer")
+@passkey_required
 def edit_swimmer(request, pk):
     swimmer = Swimmer.objects.get(id=pk)
 
@@ -157,7 +173,7 @@ def edit_swimmer(request, pk):
         return render(request, "edit_swimmer.html", context={"form": form, "id": pk})
 
 
-@permission_required("Swim4LoveV2.add_swimmer")
+@passkey_required
 def increment_laps(request, pk):
     if request.method == "POST":
         swimmer = Swimmer.objects.get(id=pk)
@@ -189,7 +205,7 @@ def increment_laps(request, pk):
         return HttpResponseRedirect(reverse('home'))
 
 
-@permission_required("Swim4LoveV2.add_swimmer")
+@passkey_required
 def decrement_laps(request, pk):
     if request.method == "POST":
         swimmer = Swimmer.objects.get(id=pk)
@@ -220,118 +236,3 @@ def decrement_laps(request, pk):
             })
         # 否则重定向到主页
         return HttpResponseRedirect(reverse('home'))
-
-
-@permission_required("Swim4LoveV2.add_swimmer")
-def toggle_favorite(request, pk):
-    if request.method == "POST":
-        swimmer = get_object_or_404(Swimmer, id=pk)
-
-        # 检查用户是否有对应志愿者记录，如果没有且用户是管理员，则创建一个
-        volunteer = None
-        try:
-            volunteer = Volunteer.objects.get(name=request.user.username)
-        except Volunteer.DoesNotExist:
-            # 如果是管理员/超级用户，自动创建志愿者记录
-            if request.user.is_staff or request.user.is_superuser:
-                # 创建临时学号
-                temp_student_id = f"admin_{request.user.id}"
-                volunteer = Volunteer.objects.create(
-                    student_id=temp_student_id,
-                    name=request.user.username
-                )
-            else:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'error': '找不到对应的志愿者记录'
-                    }, status=400)
-                return HttpResponseRedirect(reverse('home'))
-
-        # 处理收藏逻辑
-        was_favorited = swimmer in volunteer.favorites.all()
-
-        if was_favorited:
-            volunteer.favorites.remove(swimmer)
-        else:
-            volunteer.favorites.add(swimmer)
-
-        # 确保变更被保存
-        volunteer.save()
-
-        # 再次检查收藏状态，确保变更已保存
-        current_favorites = volunteer.favorites.all()
-        is_favorite_after_save = swimmer in current_favorites
-
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # 返回更详细的状态信息，并使用保存后的实际状态
-            response_data = {
-                'success': True,
-                'is_favorite': is_favorite_after_save,  # 使用实际保存后的状态，而不是预期状态
-                'swimmer_id': str(swimmer.id),
-                'swimmer_name': swimmer.name,
-                'favorites_count': volunteer.favorites.count()
-            }
-            return JsonResponse(response_data)
-
-    return HttpResponseRedirect(reverse('home'))
-
-
-@permission_required("Swim4LoveV2.add_volunteer")
-def add_volunteer(request):
-    if request.method == "POST":
-        form = AddVolunteerForm(request.POST)
-
-        if not form.is_valid():
-            return render(request, "add_volunteer.html", context={"form": form})
-
-        if not form.check_password():
-            return render(request, "add_volunteer.html", context={"form": form})
-
-        if Volunteer.exist_student_id(student_id=form.cleaned_data["student_id"]):
-            form.add_error(None, "Student ID already exists")
-            return render(request, "add_volunteer.html", context={"form": form})
-
-        if User.objects.filter(username=form.cleaned_data["name"]).exists():
-            form.add_error(None, "Username already exists")
-            return render(request, "add_volunteer.html", context={"form": form})
-
-        Volunteer.objects.create(
-            student_id=form.cleaned_data["student_id"],
-            name=form.cleaned_data["name"],
-        )
-
-        # create user
-        user = User.objects.create_user(username=form.cleaned_data["name"], password=form.cleaned_data["password"])
-
-        # add Swim4LoveV2.add_swimmer and Swim4LoveV2.add_volunteer permission
-        add_swimmer_permission = Permission.objects.get(codename="add_swimmer", content_type__app_label="Swim4LoveV2")
-        add_volunteer_permission = Permission.objects.get(codename="add_volunteer",
-                                                          content_type__app_label="Swim4LoveV2")
-        user.user_permissions.add(add_swimmer_permission, add_volunteer_permission)
-
-        return HttpResponseRedirect(reverse('home'))
-
-    else:
-        form = AddVolunteerForm()
-
-    return render(request, "add_volunteer.html", context={"form": form})
-
-
-@permission_required("Swim4LoveV2.add_volunteer")
-def delete_volunteer(request, pk):
-    pk = escape(pk)
-    if request.method == "POST":
-        username = Volunteer.objects.filter(student_id=pk).values('name').first()['name']
-
-        User.objects.filter(username=username).delete()
-        Volunteer.objects.filter(student_id=pk).delete()
-
-    return HttpResponseRedirect(reverse('home'))
-
-
-# 登出功能
-def logout_view(request):
-    # 无论是GET还是POST请求都允许登出
-    logout(request)
-    return render(request, "registration/logged_out.html")

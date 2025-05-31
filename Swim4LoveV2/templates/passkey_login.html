@@ -1,0 +1,51 @@
+{% extends "base_generic.html" %}
+{% load static %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <img src="{% static 'image/s4l_logo.png' %}" alt="Swim4Love Logo" class="login-logo">
+        <h1>Enter Passkey</h1>
+        <p>Enter the passkey to manage swimmer data</p>
+    </div>
+    
+    {% if error %}
+        <div class="error-box full-width">
+            <i class="fa-solid fa-exclamation-circle"></i>
+            <div>
+                <strong>Access Denied</strong>
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+    
+    <form method="post" class="login-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="passkey">
+                <i class="fa-solid fa-key"></i>
+                Passkey
+            </label>
+            <div class="input-with-icon">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="passkey" name="passkey" required autofocus placeholder="Enter passkey">
+            </div>
+        </div>
+        
+        <button type="submit" class="login-button">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Access System
+        </button>
+    </form>
+    
+    <div class="login-footer">
+        <p>© {% now "Y" %} Swim4Love 为爱畅游</p>
+        <p>By Henry Yang</p>
+    </div>
+    
+    <a href="{% url 'home' %}" class="return-button" title="Back to Home">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
+</div>
+{% endblock %} 

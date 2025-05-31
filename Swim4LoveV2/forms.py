@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from Swim4LoveV2.models import Volunteer, Swimmer
+from Swim4LoveV2.models import Swimmer
 
 
 def ValidateUsername(value):
@@ -46,44 +46,4 @@ class AddSwimmerForm(forms.Form):
         return student_id
 
     def clean_swim_valid(self):
-        return True
-
-
-class AddVolunteerForm(forms.Form):
-    student_id = forms.CharField(
-        widget=forms.TextInput(attrs={"placeholder": "Student ID", "class": "form-field"}),
-        error_messages={"required": "Please enter Student ID"}
-    )
-    name = forms.CharField(
-        widget=forms.TextInput(attrs={"placeholder": "Username", "class": "form-field"}),
-        max_length=100,
-        validators=[ValidateUsername],
-        label="Username"
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-field"})
-    )
-    re_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-field"}),
-        label="Confirm password"
-    )
-
-    def clean_student_id(self):
-        student_id = self.cleaned_data["student_id"]
-        if Volunteer.exist_student_id(student_id):
-            raise ValidationError("The student ID already exists!")
-        return student_id
-
-    def check_password(self):
-        password = self.cleaned_data["password"]
-        re_password = self.cleaned_data["re_password"]
-        if password != re_password:
-            self.add_error(None, "The two passwords are different!")
-            return False
-        elif re_password == "":
-            self.add_error(None, "Please enter password")
-            return False
-        elif len(re_password) < 5:
-            self.add_error(None, "The password must contain at least 5 characters")
-            return False
         return True
