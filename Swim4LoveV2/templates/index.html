@@ -97,14 +97,90 @@ function columnIndex(column) {
 // real_time_leaderboard.js functionality
 let autoRefresh = false;
 let refreshInterval;
+let autoScrollInterval;
+let isAutoScrolling = false;
 
 function toggleLeaderboard() {
     autoRefresh = !autoRefresh;
+    
     if (autoRefresh) {
         refreshTable();  // 立即刷新一次
         refreshInterval = setInterval(refreshTable, 5000); // 每5秒刷新一次
+        startAutoScroll(); // 开始自动滚动
+        
+        // Show rankings immediately when enabling leaderboard
+        const swimmerRows = document.querySelectorAll('#swimmersTable tbody tr');
+        
+        // If no rows found in the main table, try the body container table
+        if (swimmerRows.length === 0) {
+            const bodyContainerRows = document.querySelectorAll('.table-body-container table tbody tr');
+            
+            bodyContainerRows.forEach((row, index) => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell) {
+                    // Clean existing content first
+                    let cellContent = nameCell.innerHTML.trim();
+                    cellContent = cellContent.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '')
+                                             .replace(/🥇|🥈|🥉/g, '')
+                                             .replace(/<span class="rank-number">.*?<\/span>\s*/g, '')
+                                             .trim();
+                    
+                    // Add ranking number and trophy icons
+                    const rankNumber = index + 1;
+                    let displayElement = '';
+                    if (rankNumber <= 3) {
+                        // For top 3, only show medals
+                        if (rankNumber === 1) {
+                            displayElement = '<span class="rank-icon gold">🥇</span>';
+                        } else if (rankNumber === 2) {
+                            displayElement = '<span class="rank-icon silver">🥈</span>';
+                        } else if (rankNumber === 3) {
+                            displayElement = '<span class="rank-icon bronze">🥉</span>';
+                        }
+                    } else {
+                        // For 4th place and beyond, only show numbers
+                        displayElement = `<span class="rank-number">${rankNumber}.</span>`;
+                    }
+                    
+                    nameCell.innerHTML = `${displayElement} ${cellContent}`;
+                }
+            });
+        } else {
+            swimmerRows.forEach((row, index) => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell) {
+                    // Clean existing content first
+                    let cellContent = nameCell.innerHTML.trim();
+                    cellContent = cellContent.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '')
+                                             .replace(/🥇|🥈|🥉/g, '')
+                                             .replace(/<span class="rank-number">.*?<\/span>\s*/g, '')
+                                             .trim();
+                    
+                    // Add ranking number and trophy icons
+                    const rankNumber = index + 1;
+                    let displayElement = '';
+                    if (rankNumber <= 3) {
+                        // For top 3, only show medals
+                        if (rankNumber === 1) {
+                            displayElement = '<span class="rank-icon gold">🥇</span>';
+                        } else if (rankNumber === 2) {
+                            displayElement = '<span class="rank-icon silver">🥈</span>';
+                        } else if (rankNumber === 3) {
+                            displayElement = '<span class="rank-icon bronze">🥉</span>';
+                        }
+                    } else {
+                        // For 4th place and beyond, only show numbers
+                        displayElement = `<span class="rank-number">${rankNumber}.</span>`;
+                    }
+                    
+                    nameCell.innerHTML = `${displayElement} ${cellContent}`;
+                }
+            });
+        }
+        
     } else {
         clearInterval(refreshInterval);
+        stopAutoScroll(); // 停止自动滚动
         // 清除所有排名相关的CSS样式
         const houseBoxes = document.querySelectorAll('.houses-container .house-box');
         houseBoxes.forEach(box => {
@@ -119,11 +195,81 @@ function toggleLeaderboard() {
 
         // 清除游泳者表格中的排名图标
         const swimmerRows = document.querySelectorAll('#swimmersTable tbody tr');
-        swimmerRows.forEach(row => {
-            const nameCell = row.querySelector('td:first-child');
-            if (nameCell) {
-                nameCell.innerHTML = nameCell.innerHTML.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '').replace(/🥇|🥈|🥉/g, '').trim();
-            }
+        if (swimmerRows.length === 0) {
+            const bodyContainerRows = document.querySelectorAll('.table-body-container table tbody tr');
+            bodyContainerRows.forEach(row => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell) {
+                    nameCell.innerHTML = nameCell.innerHTML.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '')
+                                                         .replace(/🥇|🥈|🥉/g, '')
+                                                         .replace(/<span class="rank-number">.*?<\/span>\s*/g, '') // Remove ranking numbers
+                                                         .trim();
+                }
+            });
+        } else {
+            swimmerRows.forEach(row => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell) {
+                    nameCell.innerHTML = nameCell.innerHTML.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '')
+                                                         .replace(/🥇|🥈|🥉/g, '')
+                                                         .replace(/<span class="rank-number">.*?<\/span>\s*/g, '') // Remove ranking numbers
+                                                         .trim();
+                }
+            });
+        }
+    }
+}
+
+function startAutoScroll() {
+    if (isAutoScrolling) return;
+    
+    isAutoScrolling = true;
+    const tableContainer = document.querySelector('.table-body-container');
+    
+    if (!tableContainer) return;
+    
+    let scrollSpeed = 1; // pixels per interval
+    
+    autoScrollInterval = setInterval(() => {
+        if (!autoRefresh) {
+            stopAutoScroll();
+            return;
+        }
+        
+        const maxScroll = tableContainer.scrollHeight - tableContainer.clientHeight;
+        
+        if (maxScroll <= 0) return; // No scrolling needed if content fits
+        
+        // Calculate new scroll position (always scrolling down)
+        let newScrollTop = tableContainer.scrollTop + scrollSpeed;
+        
+        // If we've reached the bottom, instantly jump back to top for infinite scroll
+        if (newScrollTop >= maxScroll) {
+            tableContainer.scrollTop = 0;
+        } else {
+            // Apply smooth scrolling downward
+            tableContainer.scrollTo({
+                top: newScrollTop,
+                behavior: 'smooth'
+            });
+        }
+        
+    }, 50); // Update every 50ms for smooth scrolling
+}
+
+function stopAutoScroll() {
+    if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+    }
+    isAutoScrolling = false;
+    
+    // Reset scroll position to top
+    const tableContainer = document.querySelector('.table-body-container');
+    if (tableContainer) {
+        tableContainer.scrollTo({
+            top: 0,
+            behavior: 'smooth'
         });
     }
 }
@@ -139,34 +285,57 @@ function refreshTable() {
             
             // 更新游泳者表格
             const newTableBody = doc.querySelector('#swimmersTable tbody');
-            if (newTableBody) {
-                const currentTableBody = document.querySelector('#swimmersTable tbody');
-                currentTableBody.innerHTML = newTableBody.innerHTML;
-
+            let targetTableBody = document.querySelector('#swimmersTable tbody');
+            
+            // If not found, try the body container table
+            if (!newTableBody) {
+                const newBodyContainerTable = doc.querySelector('.table-body-container table tbody');
+                if (newBodyContainerTable) {
+                    targetTableBody = document.querySelector('.table-body-container table tbody');
+                    if (targetTableBody) {
+                        targetTableBody.innerHTML = newBodyContainerTable.innerHTML;
+                    }
+                }
+            } else if (!targetTableBody) {
+                targetTableBody = document.querySelector('.table-body-container table tbody');
+            }
+            
+            if (newTableBody && targetTableBody) {
+                targetTableBody.innerHTML = newTableBody.innerHTML;
+                
                 // 更新排名标志
-                const rows = currentTableBody.querySelectorAll('tr');
+                const rows = targetTableBody.querySelectorAll('tr');
                 rows.forEach((row, index) => {
                     const nameCell = row.querySelector('td:first-child');
                     if (nameCell) {
-                        // 首先清除任何现有的奖杯图标
+                        // 首先清除任何现有的奖杯图标和排名号码
                         let cellContent = nameCell.innerHTML.trim();
-                        cellContent = cellContent.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '').replace(/🥇|🥈|🥉/g, '').trim();
+                        cellContent = cellContent.replace(/<span class="rank-icon .*?">.*?<\/span>/g, '')
+                                                 .replace(/🥇|🥈|🥉/g, '')
+                                                 .replace(/^\d+\.\s*/, '') // Remove existing ranking numbers
+                                                 .trim();
                         
-                        // 添加新的奖杯图标
-                        let winnerSign = '';
-                        if (index === 0) {
-                            winnerSign = '<span class="rank-icon gold">🥇</span>';
-                        } else if (index === 1) {
-                            winnerSign = '<span class="rank-icon silver">🥈</span>';
-                        } else if (index === 2) {
-                            winnerSign = '<span class="rank-icon bronze">🥉</span>';
+                        // 添加排名号码和奖杯图标
+                        const rankNumber = index + 1;
+                        let displayElement = '';
+                        if (rankNumber <= 3) {
+                            // For top 3, only show medals
+                            if (rankNumber === 1) {
+                                displayElement = '<span class="rank-icon gold">🥇</span>';
+                            } else if (rankNumber === 2) {
+                                displayElement = '<span class="rank-icon silver">🥈</span>';
+                            } else if (rankNumber === 3) {
+                                displayElement = '<span class="rank-icon bronze">🥉</span>';
+                            }
+                        } else {
+                            // For 4th place and beyond, only show numbers
+                            displayElement = `<span class="rank-number">${rankNumber}.</span>`;
                         }
-                        nameCell.innerHTML = winnerSign ? `${winnerSign} ${cellContent}` : cellContent;
+                        
+                        // 组合排名号码、奖杯图标和姓名
+                        nameCell.innerHTML = `${displayElement} ${cellContent}`;
                     }
                 });
-            }
-            else {
-                console.error('未能在获取的HTML中找到表格主体。');
             }
 
             // 更新基本统计数据
@@ -221,8 +390,15 @@ function refreshTable() {
             
             // 重新绑定圈数按钮事件
             rebindLapButtonEvents();
+            
+            // 重新启动自动滚动（如果需要）
+            if (autoRefresh && !isAutoScrolling) {
+                startAutoScroll();
+            }
         })
-        .catch(error => console.error('获取数据时出错:', error));
+        .catch(error => {
+            // Handle error silently or with user notification if needed
+        });
 }
 
 // 辅助函数：根据选择器更新元素内容
@@ -234,8 +410,6 @@ function updateElements(selector, docSource) {
         for (let i = 0; i < targetElements.length; i++) {
             targetElements[i].innerHTML = sourceElements[i].innerHTML;
         }
-    } else {
-        console.error(`元素数量不匹配: ${selector}`);
     }
 }
 
@@ -243,38 +417,38 @@ function updateElements(selector, docSource) {
 function rebindLapButtonEvents() {
     // 获取所有加减圈按钮
     const lapButtons = document.querySelectorAll('.lap-button');
-    console.log(`Found ${lapButtons.length} lap buttons to bind events to`);
     
-    // 为每个按钮添加点击事件
-    lapButtons.forEach((button, index) => {
-        // 清除现有事件以避免重复绑定
-        button.removeEventListener('click', handleLapButtonClick);
-        // 添加新事件
-        button.addEventListener('click', handleLapButtonClick);
+    // If no buttons found, try looking in the body container
+    if (lapButtons.length === 0) {
+        const bodyContainerButtons = document.querySelectorAll('.table-body-container .lap-button');
         
-        // 添加调试信息
-        const form = button.closest('form');
-        if (form) {
-            console.log(`Button ${index + 1}: swimmer-id=${form.dataset.swimmerId}, action=${form.dataset.action}`);
-        } else {
-            console.warn(`Button ${index + 1}: No form found`);
-        }
-    });
-    
-    // 确保所有减号按钮的初始状态正确
-    lapButtons.forEach(button => {
-        if (button.classList.contains('minus-button')) {
+        bodyContainerButtons.forEach((button, index) => {
+            // 清除现有事件以避免重复绑定
+            button.removeEventListener('click', handleLapButtonClick);
+            // 添加新事件
+            button.addEventListener('click', handleLapButtonClick);
+            
+            // 添加调试信息
             const form = button.closest('form');
             if (form) {
-                const swimmerId = form.dataset.swimmerId;
-                const lapCountElement = document.getElementById(`lap-count-${swimmerId}`);
-                if (lapCountElement) {
-                    const currentLaps = parseInt(lapCountElement.textContent) || 0;
-                    button.disabled = currentLaps <= 0;
-                }
+            } else {
             }
-        }
-    });
+        });
+    } else {
+        // 为每个按钮添加点击事件
+        lapButtons.forEach((button, index) => {
+            // 清除现有事件以避免重复绑定
+            button.removeEventListener('click', handleLapButtonClick);
+            // 添加新事件
+            button.addEventListener('click', handleLapButtonClick);
+            
+            // 添加调试信息
+            const form = button.closest('form');
+            if (form) {
+            } else {
+            }
+        });
+    }
 }
 
 // 按钮点击处理函数
@@ -289,7 +463,6 @@ function handleLapButtonClick(event) {
     // 获取表单和相关数据
     const form = this.closest('form');
     if (!form) {
-        console.error('Could not find form element');
         return;
     }
     
@@ -299,14 +472,12 @@ function handleLapButtonClick(event) {
     const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
     
     if (!swimmerId || !action || !url || !csrfToken) {
-        console.error('Missing required form data:', { swimmerId, action, url, csrfToken });
         return;
     }
     
     // 获取当前圈数显示元素
     const lapCountElement = document.getElementById(`lap-count-${swimmerId}`);
     if (!lapCountElement) {
-        console.error(`Could not find lap count element: lap-count-${swimmerId}`);
         return;
     }
     
@@ -380,7 +551,6 @@ function handleLapButtonClick(event) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
         // 发生错误时恢复原来的值
         lapCountElement.textContent = currentLaps;
         alert('Failed to update lap count. Please try again.');
@@ -399,33 +569,77 @@ function handleLapButtonClick(event) {
     });
 }
 
+// Initialize rankings on page load if leaderboard is enabled
+function initializeRankings() {
+    const leaderboardSwitch = document.querySelector('#leaderboard-switch');
+    
+    if (leaderboardSwitch && leaderboardSwitch.checked) {
+        const swimmerRows = document.querySelectorAll('#swimmersTable tbody tr');
+        
+        // If no rows in main table, try the body container table
+        let rowsToProcess = swimmerRows;
+        if (swimmerRows.length === 0) {
+            rowsToProcess = document.querySelectorAll('.table-body-container table tbody tr');
+        }
+        
+        rowsToProcess.forEach((row, index) => {
+            const nameCell = row.querySelector('td:first-child');
+            if (nameCell) {
+                
+                // Check if rankings are already present (from server-side rendering)
+                const hasRankNumber = nameCell.querySelector('.rank-number');
+                
+                if (!hasRankNumber) {
+                    // Add rankings if not present
+                    let cellContent = nameCell.innerHTML.trim();
+                    const rankNumber = index + 1;
+                    let displayElement = '';
+                    if (rankNumber <= 3) {
+                        // For top 3, only show medals
+                        if (rankNumber === 1) {
+                            displayElement = '<span class="rank-icon gold">🥇</span>';
+                        } else if (rankNumber === 2) {
+                            displayElement = '<span class="rank-icon silver">🥈</span>';
+                        } else if (rankNumber === 3) {
+                            displayElement = '<span class="rank-icon bronze">🥉</span>';
+                        }
+                    } else {
+                        // For 4th place and beyond, only show numbers
+                        displayElement = `<span class="rank-number">${rankNumber}.</span>`;
+                    }
+                    
+                    nameCell.innerHTML = `${displayElement} ${cellContent}`;
+                }
+            }
+        });
+    } else {
+    }
+}
+
 // 初始化时绑定事件
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Initializing Swim4Love JavaScript');
     
     // 检查是否在index.html页面上
     if (document.querySelector('#leaderboard-switch')) {
-        console.log('Leaderboard found, initializing leaderboard functionality');
         
         // 绑定排行榜切换事件
         const leaderboardSwitch = document.querySelector('#leaderboard-switch');
         if (leaderboardSwitch.checked) {
             autoRefresh = true;
             refreshInterval = setInterval(refreshTable, 5000);
-            console.log('Auto-refresh enabled');
         }
         
+        // Initialize rankings if leaderboard is enabled
+        initializeRankings();
+        
         // 初始绑定按钮事件
-        console.log('Binding lap button events...');
         rebindLapButtonEvents();
     } else {
-        console.log('Not on index page, skipping leaderboard initialization');
     }
     
     // 添加游泳者和志愿者按钮事件
     const addSwimmerBtn = document.getElementById('addSwimmerBtn');
     if (addSwimmerBtn) {
-        console.log('Add swimmer button found, binding click event');
         addSwimmerBtn.addEventListener('click', function() {
             location.href = "{% url 'add_swimmer' %}";
             return false;
@@ -437,7 +651,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('mainContainer');
     
     if (toggleBtn && container) {
-        console.log('Panel toggle functionality initialized');
         
         // 检查本地存储中的状态
         const isPanelCollapsed = localStorage.getItem('panelCollapsed') === 'true';
@@ -466,7 +679,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    console.log('Swim4Love JavaScript initialization complete');
 });
 </script>
 {% endblock %}
@@ -486,6 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="user-profile">
                         <div class="user-details" style="text-align: center;">
+                            <div class="welcome-message">Welcome Back!</div>
                             <form action="{% url 'passkey_logout' %}" method="post" class="logout-form">
                                 {% csrf_token %}
                                 <button type="submit" class="logout-button">
@@ -570,9 +783,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <h2 style="margin: 0;">Swimmers</h2>
                         {% if have_perm %}
-                            <button class="button" id="addSwimmerBtn">
-                                <i class="fa-solid fa-plus"></i> Add Swimmer
-                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="button" id="addSwimmerBtn">
+                                    <i class="fa-solid fa-plus"></i> Add Swimmer
+                                </button>
+                                <button class="button" onclick="downloadSwimmersExcel()">
+                                    <i class="fa-solid fa-download"></i> Download Excel
+                                </button>
+                            </div>
                         {% endif %}
                     </div>
                     <div class="search-container" style="display: flex; align-items: center; gap: 5px;">
@@ -595,113 +813,118 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
 
-                <table class="styled-table {% if have_perm %}has-operations{% endif %}" id="swimmersTable">
-                    <thead>
-                    <tr>
-                        <th>
-                            <div class="table-header">
-                                <span>Name</span>
-                                <div class="button-container">
-                                    <button onclick="sortTable('name', false)" class="asc-sort-button"></button>
-                                    <button onclick="sortTable('name', true)" class="desc-sort-button"></button>
-                                </div>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="table-header">
-                                <span>Student ID</span>
-                                <div class="button-container">
-                                    <button onclick="sortTable('student_id')" class="asc-sort-button"></button>
-                                    <button onclick="sortTable('student_id', true)" class="desc-sort-button"></button>
-                                </div>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="table-header">
-                                <span>House</span>
-                                <div class="button-container">
-                                    <button onclick="sortTable('house')" class="asc-sort-button"></button>
-                                    <button onclick="sortTable('house', true)" class="desc-sort-button"></button>
-                                </div>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="table-header">
-                                <span>Laps</span>
-                                <div class="button-container">
-                                    <button onclick="sortTable('lap_count')" class="asc-sort-button"></button>
-                                    <button onclick="sortTable('lap_count', true)" class="desc-sort-button"></button>
-                                </div>
-                            </div>
-                        </th>
-                        {% if have_perm %}
-                        <th>Manage</th>
-                        {% endif %}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for swimmer in swimmers %}
+                <div class="table-wrapper">
+                    <table class="styled-table {% if have_perm %}has-operations{% endif %}" id="swimmersTable">
+                        <thead>
                         <tr>
-                            <td>
-                                {% if leaderboard %}
-                                    {% if forloop.counter == 1 %}
-                                        🥇
-                                    {% elif forloop.counter == 2 %}
-                                        🥈
-                                    {% elif forloop.counter == 3 %}
-                                        🥉
-                                    {% endif %}
-                                {% endif %}
-                                {{ swimmer.name }}
-                            </td>
-                            <td>{{ swimmer.student_id|default:"/"}}</td>
-                            <td class="house-{{ swimmer.house|lower }}">{{ swimmer.house }}</td>
-                            <td>
-                                <div class="lap-controls">
-                                    {% if have_perm %}
-                                    <form action="{% url 'decrement_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="decrement" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button" class="lap-button minus-button" {% if swimmer.lap_count <= 0 %}disabled{% endif %}>
-                                            <i class="fa-solid fa-minus"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                    <span class="lap-count" id="lap-count-{{ swimmer.id }}">{{ swimmer.lap_count }}</span>
-                                    {% if have_perm %}
-                                    <form action="{% url 'increment_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="increment" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button" class="lap-button plus-button">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
+                            <th>
+                                <div class="table-header">
+                                    <span>Name</span>
+                                    <div class="button-container">
+                                        <button onclick="sortTable('name', false)" class="asc-sort-button"></button>
+                                        <button onclick="sortTable('name', true)" class="desc-sort-button"></button>
+                                    </div>
                                 </div>
-                            </td>
-                            <td>
-                                {% if have_perm %}
-                                <div class="action-buttons">
-                                    <form action="{% url 'edit_swimmer' swimmer.id %}" method="get">
-                                        <button type="submit" class="edit-button"><i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{% url 'delete_swimmer' swimmer.id %}" method="post"
-                                          onsubmit="confirmDelete(event)">
-                                        {% csrf_token %}
-                                        <button type="submit" class="delete-button"><i class="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </form>
+                            </th>
+                            <th>
+                                <div class="table-header">
+                                    <span>Student ID</span>
+                                    <div class="button-container">
+                                        <button onclick="sortTable('student_id')" class="asc-sort-button"></button>
+                                        <button onclick="sortTable('student_id', true)" class="desc-sort-button"></button>
+                                    </div>
                                 </div>
-                                {% endif %}
-                            </td>
+                            </th>
+                            <th>
+                                <div class="table-header">
+                                    <span>House</span>
+                                    <div class="button-container">
+                                        <button onclick="sortTable('house')" class="asc-sort-button"></button>
+                                        <button onclick="sortTable('house', true)" class="desc-sort-button"></button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="table-header">
+                                    <span>Laps</span>
+                                    <div class="button-container">
+                                        <button onclick="sortTable('lap_count')" class="asc-sort-button"></button>
+                                        <button onclick="sortTable('lap_count', true)" class="desc-sort-button"></button>
+                                    </div>
+                                </div>
+                            </th>
+                            {% if have_perm %}
+                            <th>Manage</th>
+                            {% endif %}
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                {% if have_perm %}
-                    <button class="button" onclick="downloadSwimmersExcel()">
-                        <i class="fa-solid fa-download"></i> Download Excel
-                    </button>
-                {% endif %}
+                        </thead>
+                    </table>
+                    <div class="table-body-container" style="overflow-y: auto; flex: 1;">
+                        <table class="styled-table {% if have_perm %}has-operations{% endif %}" style="margin-top: 0;">
+                            <tbody>
+                            {% for swimmer in swimmers %}
+                                <tr>
+                                    <td>
+                                        {% if leaderboard %}
+                                            {% if forloop.counter <= 3 %}
+                                                {% if forloop.counter == 1 %}
+                                                    <span class="rank-icon gold">🥇</span>
+                                                {% elif forloop.counter == 2 %}
+                                                    <span class="rank-icon silver">🥈</span>
+                                                {% elif forloop.counter == 3 %}
+                                                    <span class="rank-icon bronze">🥉</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="rank-number">{{ forloop.counter }}.</span>
+                                            {% endif %}
+                                        {% endif %}
+                                        {{ swimmer.name }}
+                                    </td>
+                                    <td>{{ swimmer.student_id|default:"/"}}</td>
+                                    <td class="house-{{ swimmer.house|lower }}">{{ swimmer.house }}</td>
+                                    <td>
+                                        <div class="lap-controls">
+                                            {% if have_perm %}
+                                            <form action="{% url 'decrement_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="decrement" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="button" class="lap-button minus-button" {% if swimmer.lap_count <= 0 %}disabled{% endif %}>
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <span class="lap-count" id="lap-count-{{ swimmer.id }}">{{ swimmer.lap_count }}</span>
+                                            {% if have_perm %}
+                                            <form action="{% url 'increment_laps' swimmer.id %}" method="post" class="lap-form" data-swimmer-id="{{ swimmer.id }}" data-action="increment" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="button" class="lap-button plus-button">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if have_perm %}
+                                        <div class="action-buttons">
+                                            <form action="{% url 'edit_swimmer' swimmer.id %}" method="get">
+                                                <button type="submit" class="edit-button"><i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{% url 'delete_swimmer' swimmer.id %}" method="post"
+                                                  onsubmit="confirmDelete(event)">
+                                                {% csrf_token %}
+                                                <button type="submit" class="delete-button"><i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         
