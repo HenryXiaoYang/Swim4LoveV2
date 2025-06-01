@@ -44,7 +44,7 @@ html, body {
     padding: var(--container-padding);
     width: 95%;
     max-width: 1800px;
-    margin: clamp(10px, 2vh, 20px) auto;
+    margin: clamp(10px, 2vh, 10px) auto;
     min-height: calc(100vh - clamp(20px, 4vh, 40px));
     color: var(--text-color);
     transition: all 0.3s ease;
@@ -80,6 +80,9 @@ html, body {
     overflow-y: auto;
     padding: var(--container-padding);
     margin-bottom: clamp(10px, 2vh, 20px);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - clamp(40px, 6vh, 60px));
 }
 
 .panel-collapsed .right-panel {
@@ -144,6 +147,7 @@ html, body {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
     gap: clamp(8px, 1vh, 10px);
+    margin: 0 5px;
     margin-bottom: clamp(8px, 1.2vh, 12px);
 }
 
@@ -213,6 +217,7 @@ html, body {
     gap: var(--section-gap);
     transition: all 0.3s ease;
     padding: clamp(8px, 1vh, 10px);
+    margin: 0 2px;
 }
 
 .house-box {
@@ -255,12 +260,12 @@ html, body {
 }
 
 .house-box strong {
-    font-size: clamp(16px, 2.2vh, 20px);
+    font-size: clamp(14px, 2.8vh, 20px) !important;
     font-weight: 600;
 }
 
 .house-box div {
-    font-size: clamp(20px, 3vh, 26px);
+    font-size: clamp(20px, 4vh, 28px) !important;
     font-weight: bold;
 }
 
@@ -277,7 +282,8 @@ html, body {
     align-items: center;
     transition: var(--transition);
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);  /* 添加文字阴影增强可读性 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    margin: 0 15px 0 0;
 }
 
 .leaderboard-container:hover {
@@ -1413,6 +1419,7 @@ button.submit-button:hover {
     -webkit-backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
     padding: 15px;
+    margin: 0 5px;
     margin-bottom: clamp(12px, 1.5vh, 15px);
     box-shadow: var(--box-shadow);
     transition: var(--transition);
@@ -1425,11 +1432,11 @@ button.submit-button:hover {
 }
 
 .user-avatar {
-    margin-right: 12px;
+    margin-right: clamp(6px, 2vw, 12px);
 }
 
 .user-avatar img {
-    width: 45px;
+    width: clamp(30px, 5vw, 60px);
     height: auto;
     border-radius: 0;
     object-fit: contain;
@@ -1437,6 +1444,7 @@ button.submit-button:hover {
     padding: 0;
     box-shadow: none;
     transition: var(--transition);
+    max-width: 100%;
 }
 
 .user-avatar img:hover {
@@ -1499,6 +1507,7 @@ button.submit-button:hover {
     -webkit-backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
     padding: 20px;
+    margin: 0 5px;
     margin-bottom: clamp(12px, 1.5vh, 15px);
     display: flex;
     flex-direction: column;
@@ -1758,6 +1767,7 @@ button.submit-button:hover {
     gap: var(--section-gap);
     transition: all 0.3s ease;
     padding: clamp(8px, 1vh, 10px);
+    margin: 0 2px;
 }
 
 .house-box {
@@ -1965,208 +1975,655 @@ input[type="checkbox"]:checked + .leaderboard-status {
 
 /* 适配切换按钮响应式布局 */
 @media (max-width: 768px) {
+    /* Root level fixes for mobile */
+    html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure no element can exceed viewport width */
+    * {
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    
     .container {
-        grid-template-columns: 1fr;
+        display: flex !important; /* Override grid display */
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        padding: clamp(5px, 1vh, 10px);
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        margin: 0;
+        gap: clamp(10px, 2vh, 20px);
     }
     
     .container.panel-collapsed {
-        grid-template-columns: 1fr;
+        display: flex !important; /* Override grid display */
+        flex-direction: column;
     }
     
     .left-panel {
-        margin-bottom: 20px;
+        width: 100%;
+        min-width: unset;
+        max-width: none;
+        margin-bottom: 0; /* Remove margin since we're using gap */
+        order: 1;
+        box-sizing: border-box;
+        margin-left: 0 !important; /* Override any negative margins */
+        opacity: 1 !important; /* Ensure visibility */
+        transform: none !important; /* Override any transforms */
     }
     
     .panel-collapsed .left-panel {
-        display: none;
+        width: 100%;
+        min-width: unset;
+        transform: none !important;
+        margin-left: 0 !important;
+        opacity: 1 !important;
+        display: flex !important; /* Ensure it's visible */
+    }
+    
+    .right-panel {
+        width: 100%;
+        max-width: 100%;
+        flex: 1;
+        order: 2;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        margin-bottom: 0; /* Remove margin since we're using gap */
+        display: flex !important; /* Ensure visibility */
+        flex-direction: column;
+        height: calc(100vh - clamp(40px, 6vh, 60px));
     }
     
     .panel-toggle {
-        bottom: 15px;
-        left: 0;
+        display: none; /* Hide toggle button on mobile since panels are stacked */
+    }
+    
+    /* Mobile optimizations for left panel components */
+    .stats-grid {
+        gap: clamp(8px, 1.5vh, 15px);
+        margin-bottom: clamp(10px, 2vh, 15px);
+    }
+    
+    .count-box {
+        padding: clamp(8px, 1.5vh, 12px);
+        min-width: 100px;
+    }
+    
+    .houses-container {
+        gap: clamp(8px, 1.5vh, 12px);
+        margin: clamp(10px, 2vh, 15px) 0;
+    }
+    
+    .house-box {
+        padding: clamp(8px, 1.5vh, 12px);
+        min-height: clamp(60px, 8vh, 80px);
+    }
+    
+    .house-box strong {
+        font-size: clamp(16px, 2.8vh, 20px);
+    }
+    
+    .house-box div {
+        font-size: clamp(20px, 4vh, 26px);
+    }
+    
+    .leaderboard-container {
+        padding: clamp(8px, 1.5vh, 12px);
+        margin: clamp(10px, 2vh, 15px) 0;
+    }
+    
+    /* Mobile table optimizations */
+    .swimmers-header {
+        flex-direction: column;
+        gap: clamp(10px, 2vh, 15px);
+        align-items: stretch !important;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .swimmers-header h2 {
+        margin: 0;
+        font-size: clamp(18px, 3vh, 24px);
+    }
+    
+    .swimmers-header > div:first-child {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .swimmers-header > div:first-child > div {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    
+    /* Maintain compact button sizing on very small screens */
+    .button {
+        font-size: clamp(11px, 2vh, 14px);
+        padding: clamp(6px, 1.2vh, 8px) clamp(8px, 1.5vh, 12px);
+        min-width: clamp(85px, 18vw, 130px);
+        max-width: clamp(130px, 25vw, 170px);
+        height: auto;
+    }
+    
+    .search-container {
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-container form {
+        width: 100%;
+        max-width: 400px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .search-input {
+        flex: 1;
+        min-width: 0;
+        font-size: clamp(14px, 2.5vh, 16px);
+        padding: clamp(6px, 1.5vh, 10px);
+        box-sizing: border-box;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius);
+        color: white;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+    
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--main-color-light);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+    }
+    
+    .search-button {
+        background: var(--main-color);
+        border: none;
+        padding: clamp(6px, 1.5vh, 10px);
+        border-radius: var(--border-radius);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: clamp(32px, 4vh, 40px);
+        height: clamp(32px, 4vh, 40px);
+    }
+    
+    .search-button:hover {
+        background: var(--main-color-light);
+        transform: translateY(-2px);
+    }
+    
+    .clear-search {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        padding: clamp(6px, 1.5vh, 10px);
+        border-radius: var(--border-radius);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: clamp(32px, 4vh, 40px);
+        height: clamp(32px, 4vh, 40px);
+        text-decoration: none;
+    }
+    
+    .clear-search:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .swimmers-section {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+    
+    .table-wrapper {
+        border-radius: clamp(4px, 1vh, 8px);
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        min-height: clamp(200px, 25vh, 300px);
+    }
+    
+    .table-body-container {
+        overflow-y: auto;
+        flex: 1;
+        min-height: clamp(200px, 30vh, 350px);
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .styled-table {
+        font-size: clamp(10px, 1.8vh, 12px);
+        min-width: 100%; /* Ensure table takes full width */
+        max-width: 100%;
+        width: 100%;
+        table-layout: fixed; /* Fixed layout for consistent columns */
+        box-sizing: border-box;
+    }
+    
+    .styled-table th,
+    .styled-table td {
+        padding: clamp(4px, 1vh, 6px) clamp(2px, 0.5vh, 4px);
+        word-wrap: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Mobile-specific column widths - much more compact */
+    .table-wrapper .styled-table th:nth-child(1),
+    .table-wrapper .styled-table td:nth-child(1) {
+        width: 28%;
+        min-width: 70px;
+        max-width: 100px;
+    }
+    
+    .table-wrapper .styled-table th:nth-child(2),
+    .table-wrapper .styled-table td:nth-child(2) {
+        width: 18%;
+        min-width: 50px;
+        max-width: 70px;
+    }
+    
+    .table-wrapper .styled-table th:nth-child(3),
+    .table-wrapper .styled-table td:nth-child(3) {
+        width: 16%;
+        min-width: 45px;
+        max-width: 60px;
+    }
+    
+    .table-wrapper .styled-table th:nth-child(4),
+    .table-wrapper .styled-table td:nth-child(4) {
+        width: 22%;
+        min-width: 55px;
+        max-width: 75px;
+    }
+    
+    .table-wrapper .styled-table th:nth-child(5),
+    .table-wrapper .styled-table td:nth-child(5) {
+        width: 16%;
+        min-width: 45px;
+        max-width: 60px;
+    }
+    
+    /* Make lap controls more compact on mobile */
+    .lap-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(2px, 0.5vh, 4px);
+    }
+    
+    /* Compact action buttons for mobile */
+    .action-buttons {
+        display: flex;
+        gap: clamp(2px, 0.5vh, 4px);
+        justify-content: center;
+    }
+    
+    /* Hide sort buttons on mobile to save space */
+    .button-container {
+        display: none;
+    }
+    
+    .table-header {
+        justify-content: center;
+    }
+    
+    .table-header span {
+        font-size: clamp(10px, 1.8vh, 12px);
+        font-weight: bold;
+    }
+    
+    /* Additional mobile optimizations for better fit */
+    .button {
+        padding: clamp(6px, 1.2vh, 8px) clamp(8px, 1.5vh, 12px);
+        font-size: clamp(10px, 1.6vh, 12px);
+        min-height: clamp(32px, 4vh, 36px);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(3px, 0.5vh, 5px);
+        flex-shrink: 0;
+        width: auto;
+        flex: 1;
+        min-width: clamp(85px, 18vw, 130px);
+        max-width: clamp(130px, 25vw, 170px);
+    }
+    
+    .button i {
+        font-size: clamp(10px, 1.6vh, 12px);
+    }
+    
+    .lap-button {
+        width: clamp(20px, 2.5vh, 24px);
+        height: clamp(20px, 2.5vh, 24px);
+        font-size: clamp(9px, 1.2vh, 11px);
+        padding: 0;
+        margin: 0;
+    }
+    
+    .lap-count {
+        font-size: clamp(11px, 1.8vh, 13px);
+        min-width: clamp(20px, 2.5vh, 26px);
+        padding: clamp(2px, 0.5vh, 4px);
+        text-align: center;
+    }
+    
+    .edit-button,
+    .delete-button {
+        width: clamp(24px, 3vh, 28px);
+        height: clamp(24px, 3vh, 28px);
+        font-size: clamp(9px, 1.2vh, 11px);
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* User interface mobile optimizations */
+    .user-info-panel,
+    .login-panel {
+        padding: clamp(10px, 2vh, 15px);
+        margin-bottom: clamp(10px, 2vh, 15px);
+    }
+    
+    .panel-header {
+        gap: clamp(8px, 1.5vh, 12px);
+    }
+    
+    .user-avatar {
+        width: clamp(40px, 6vh, 50px);
+        height: clamp(40px, 6vh, 50px);
+    }
+    
+    .app-title {
+        font-size: clamp(16px, 3vh, 20px);
+    }
+    
+    .login-button-large {
+        padding: clamp(8px, 1.5vh, 12px) clamp(16px, 3vh, 20px);
+        font-size: clamp(14px, 2.5vh, 16px);
+    }
+    
+    .logout-button {
+        padding: 6px 12px;
+        font-size: 12px;
     }
 }
 
-/* 页脚样式 */
-.footer {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: var(--card-padding) 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: clamp(14px, 1.8vh, 18px);
-    margin-top: clamp(15px, 2vh, 20px);
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+    
+    .stats-grid {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .count-box {
+        min-width: unset;
+    }
+    
+    .houses-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .swimmers-header > div:first-child > div {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .table-wrapper {
+        max-height: clamp(200px, 40vh, 55vh);
+        min-height: clamp(150px, 20vh, 250px);
+    }
+    
+    .table-body-container {
+        max-height: clamp(130px, 25vh, 35vh);
+        min-height: clamp(100px, 15vh, 180px);
+    }
 }
 
-.footer p {
-    margin: 0;
+/* Button container styling for side-by-side layout */
+.swimmers-header > div:first-child > div {
+    display: flex !important;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-direction: row !important;
 }
 
-/* 搜索框样式 */
+/* Search box styling - applies to all screen sizes */
 .search-container {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
+.search-container form {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .search-input {
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex: 1;
+    min-width: 200px;
+    font-size: clamp(14px, 2.5vh, 16px);
+    padding: clamp(8px, 1.5vh, 12px);
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
-    width: 200px;
-    background: var(--background-blur);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     color: white;
-    font-size: 16px;
-    transition: var(--transition);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .search-input:focus {
     outline: none;
-    border-color: var(--main-color);
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3);
+    border-color: var(--main-color-light);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
 }
 
 .search-button {
-    padding: 8px 12px;
     background: var(--main-color);
-    color: white;
     border: none;
+    padding: clamp(8px, 1.5vh, 12px);
     border-radius: var(--border-radius);
+    color: white;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: clamp(40px, 4vh, 48px);
+    height: clamp(40px, 4vh, 48px);
 }
 
 .search-button:hover {
-    background: var(--main-color-dark);
+    background: var(--main-color-light);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .clear-search {
-    padding: 8px 12px;
-    background: rgba(108, 117, 125, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: white;
-    text-decoration: none;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: clamp(8px, 1.5vh, 12px);
     border-radius: var(--border-radius);
-    transition: var(--transition);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: clamp(40px, 4vh, 48px);
+    height: clamp(40px, 4vh, 48px);
+    text-decoration: none;
 }
 
 .clear-search:hover {
-    background: rgba(108, 117, 125, 1);
+    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Table layout and container styles - moved from index.html */
-.container {
-    margin-top: 10px !important;
-    padding-top: 10px !important;
-    height: calc(100vh - 20px);
-    display: flex;
-}
-
-.right-panel {
+/* Table wrapper and container styling for desktop */
+.table-wrapper {
     display: flex;
     flex-direction: column;
+    height: auto;
     flex: 1;
+    min-height: clamp(300px, 40vh, 450px);
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.table-body-container {
+    overflow-y: auto;
+    flex: 1;
+    min-height: clamp(200px, 30vh, 350px);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .swimmers-section {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    height: 100%;
     min-height: 0;
-}
-
-.table-wrapper {
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     flex: 1;
-    min-height: 0;
 }
 
-.table-wrapper .styled-table {
-    margin-bottom: 0;
-    border-radius: 0;
+/* Mobile optimizations for left panel components with decreased width */
+
+/* Title section with margins */
+.panel-header {
+    margin: 0 clamp(15px, 4vw, 25px);
 }
 
-.table-wrapper .styled-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+/* Stats grid (information boxes) with margins */
+.stats-grid {
+    gap: clamp(8px, 1.5vh, 15px);
+    margin: clamp(5px, 1vh, 8px) clamp(15px, 4vw, 25px);
 }
 
-.table-body-container {
-    border-top: none;
-}
-
-.table-body-container .styled-table {
-    border-top: none;
-}
-
-/* Ensure column widths match between header and body */
-.table-wrapper .styled-table th:nth-child(1),
-.table-wrapper .styled-table td:nth-child(1) {
-    width: 25%;
-    min-width: 150px;
-}
-
-.table-wrapper .styled-table th:nth-child(2),
-.table-wrapper .styled-table td:nth-child(2) {
-    width: 20%;
-    min-width: 120px;
-}
-
-.table-wrapper .styled-table th:nth-child(3),
-.table-wrapper .styled-table td:nth-child(3) {
-    width: 15%;
+.count-box {
+    padding: clamp(8px, 1.5vh, 12px);
     min-width: 100px;
 }
 
-.table-wrapper .styled-table th:nth-child(4),
-.table-wrapper .styled-table td:nth-child(4) {
-    width: 20%;
-    min-width: 120px;
+/* Houses container (house ranking) with margins */
+.houses-container {
+    gap: clamp(8px, 1.5vh, 12px);
+    margin: clamp(5px, 1vh, 8px) clamp(15px, 4vw, 25px);
 }
 
-.table-wrapper .styled-table th:nth-child(5),
-.table-wrapper .styled-table td:nth-child(5) {
-    width: 20%;
-    min-width: 120px;
+.house-box {
+    padding: clamp(8px, 1.5vh, 12px);
+    min-height: clamp(60px, 8vh, 80px);
 }
 
-.table-body-container::-webkit-scrollbar {
-    width: 8px;
+.house-box strong {
+    font-size: clamp(16px, 2.8vh, 20px);
 }
 
-.table-body-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+.house-box div {
+    font-size: clamp(20px, 4vh, 26px);
 }
 
-.table-body-container::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
+/* Leaderboard container (enable leaderboard) with margins */
+.leaderboard-container {
+    padding: clamp(8px, 1.5vh, 12px);
+    margin: clamp(5px, 1vh, 8px) clamp(15px, 4vw, 25px);
 }
 
-.table-body-container::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+/* User info panels with modest margins for slightly smaller width */
+.user-info-panel,
+.login-panel {
+    margin: clamp(5px, 1vh, 8px) clamp(10px, 3vw, 18px);
+}
+
+.panel-header {
+    margin: 0; /* Reset margin since parent has margin now */
+}
+
+/* Desktop-specific styling for reduced margins */
+@media (min-width: 769px) {
+    .stats-grid {
+        margin: 0 5px;
+    }
+    
+    .houses-container {
+        margin: 0 2px;
+    }
+    
+    .leaderboard-container {
+        margin: 0 2px;
+    }
+    
+    .user-info-panel,
+    .login-panel {
+        margin: 0 5px;
+    }
+}
+
+/* Footer Styles */
+.footer {
+    text-align: center;
+    color: #666;
+    margin-top: 40px;
+    padding: 20px 0;
+}
+
+.footer p {
+    margin: 5px 0;
+    font-size: 14px;
 }
